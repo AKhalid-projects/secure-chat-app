@@ -21,6 +21,7 @@ import {
 } from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/types';
 import {SCREEN_CONSTANTS} from './AppConstants';
+import dayjs from 'dayjs';
 
 interface Translations {
   lastSeen: string;
@@ -146,8 +147,6 @@ export async function requestAndroidPermissions() {
     await PermissionsAndroid.requestMultiple([
       PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
       PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-      PermissionsAndroid.PERMISSIONS.CAMERA,
-      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
       PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
     ]);
   } catch (err) {
@@ -493,8 +492,10 @@ export async function navigateToConversation(
   navigationRef: NavigationContainerRefWithCurrent<RootStackParamList>,
   data?: NotifeeData,
 ) {
-  if (!data) return;
-  if (!navigationRef.current) return;
+  if (!data || !navigationRef.current) {
+    return;
+  }
+  
   try {
     // Handle group
     if (data.receiverType === 'group') {

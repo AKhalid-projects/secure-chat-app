@@ -1,6 +1,6 @@
 {
   "name": "sampleappexpo",
-  "version": "5.2.6",
+  "version": "5.2.10",
   "main": "index.js",
   "scripts": {
     "start": "expo start --dev-client",
@@ -10,9 +10,14 @@
   },
   "dependencies": {
     "@cometchat/calls-sdk-react-native": "^4.4.0",
+<<<<<<< HEAD
+    "@cometchat/chat-sdk-react-native": "^4.0.19",
+    "@cometchat/chat-uikit-react-native": "^5.2.10",
+=======
     "@cometchat/chat-sdk-react-native": "^4.0.18",
     "@cometchat/chat-uikit-react-native": "^5.2.6",
     "@notifee/react-native": "^9.1.8",
+>>>>>>> ff8a6f8 (SampleAppExpo: add error boundary, push/VoIP utils, sample data; remove AI agent; update config and navigation)
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-clipboard/clipboard": "^1.16.3",
     "@react-native-community/datetimepicker": "^8.4.5",

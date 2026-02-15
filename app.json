@@ -1,0 +1,78 @@
+{
+  "expo": {
+    "name": "SampleAppExpo",
+    "slug": "SampleAppExpo",
+    "version": "5.2.6",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "newArchEnabled": true,
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cometchat.internal.reactnative.ios",
+      "userInterfaceStyle": "automatic",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This is for Camera permission",
+        "NSMicrophoneUsageDescription": "This is for Microphone permission",
+        "UIBackgroundModes": [
+          "remote-notification",
+          "voip"
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "configChanges": [
+        "keyboard",
+        "keyboardHidden",
+        "orientation",
+        "screenLayout",
+        "screenSize",
+        "smallestScreenSize",
+        "uiMode",
+        "fontScale"
+      ],
+      "edgeToEdgeEnabled": true,
+      "package": "com.cometchat.sampleapp.reactnative.android",
+      "userInterfaceStyle": "automatic",
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.CAMERA",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.FOREGROUND_SERVICE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/inter_regular.ttf",
+            "./assets/fonts/inter_medium.ttf",
+            "./assets/fonts/inter_bold.ttf",
+            "./assets/fonts/roboto_regular.ttf",
+            "./assets/fonts/roboto_medium.ttf",
+            "./assets/fonts/roboto_bold.ttf",
+            "./assets/fonts/times_new_roman_regular.ttf",
+            "./assets/fonts/times_new_roman_medium.ttf",
+            "./assets/fonts/times_new_roman_bold.ttf"
+          ]
+        }
+      ]
+    ]
+  }
+}

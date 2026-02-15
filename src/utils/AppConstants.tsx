@@ -1,0 +1,40 @@
+export const AppConstants = {
+  fcmProviderId: '435251613306',
+  apnsProviderId: '',
+  authKey: 'df50d6a569e80537fde3a11cac710409676e9f09',
+  appId: '1673397810d89b0a5',
+  region: 'US',
+  subscriptionType: 'ALL_USERS',
+  versionNumber: 'V5.2.6',
+  webClientId:
+    '',
+  iosClientId:
+    '',
+};
+
+export const SCREEN_CONSTANTS = {
+  LOGIN: 'Login',
+  APP_CRED: 'AppCredentials',
+  SAMPLE_USER: 'SampleUser',
+  ONGOING_CALL_SCREEN: 'OngoingCallScreen',
+  BOTTOM_TAB_NAVIGATOR: 'BottomTabNavigator',
+  CHATS: 'Chats',
+  CALLS: 'Calls',
+  USERS: 'Users',
+  GROUPS: 'Groups',
+  CONVERSATION: 'Conversation',
+  CREATE_CONVERSATION: 'CreateConversation',
+  MESSAGES: 'Messages',
+  SEARCH_MESSAGES: 'SearchMessages',
+  THREAD_VIEW: 'ThreadView',
+  USER_INFO: 'UserInfo',
+  GROUP_INFO: 'GroupInfo',
+  ADD_MEMBER: 'AddMember',
+  TRANSFER_OWNERSHIP: 'TransferOwnershipSection',
+  BANNED_MEMBER: 'BannedMember',
+  VIEW_MEMBER: 'ViewMembers',
+  CALL_LOGS: 'CallLogs',
+  CALL_DETAILS: 'CallDetails',
+  QR_SCREEN: 'QRScreen',
+  AI_AGENTS: 'AIAgents',
+} as const;

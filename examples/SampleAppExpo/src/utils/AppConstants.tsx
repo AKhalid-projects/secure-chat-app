@@ -1,9 +1,9 @@
 export const AppConstants = {
-  fcmProviderId: '',
+  fcmProviderId: '435251613306',
   apnsProviderId: '',
-  authKey: '',
-  appId: '',
-  region: '',
+  authKey: 'df50d6a569e80537fde3a11cac710409676e9f09',
+  appId: '1673397810d89b0a5',
+  region: 'US',
   subscriptionType: 'ALL_USERS',
   versionNumber: 'V5.2.10',
   webClientId:
@@ -36,5 +36,4 @@ export const SCREEN_CONSTANTS = {
   CALL_LOGS: 'CallLogs',
   CALL_DETAILS: 'CallDetails',
   QR_SCREEN: 'QRScreen',
-  AI_AGENTS: 'AIAgents',
 } as const;

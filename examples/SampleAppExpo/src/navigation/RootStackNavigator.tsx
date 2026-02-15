@@ -26,7 +26,6 @@ import {CallDetails} from '../components/calls/CallDetails';
 import Users from '../components/users/Users';
 import Groups from '../components/groups/Groups';
 import QRScreen from '../components/conversations/screens/qr_screen';
-import AIAgents from '../components/AIAgent/AIAgents';
 import SearchMessages from '../components/conversations/screens/SearchMessages';
 
 type Props = {
@@ -93,7 +92,6 @@ const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials: _hasValidAppCre
           />
           <Stack.Screen name={SCREEN_CONSTANTS.USERS} component={Users} />
           <Stack.Screen name={SCREEN_CONSTANTS.GROUPS} component={Groups} />
-          <Stack.Screen name={SCREEN_CONSTANTS.AI_AGENTS} component={AIAgents} />
 
           {/* Chat Screens */}
           <Stack.Screen

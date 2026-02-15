@@ -27,6 +27,7 @@ import {
 import Check from '../../assets/icons/CheckFill';
 import { sampleData } from '../../utils/helper';
 import { SCREEN_CONSTANTS } from '../../utils/AppConstants';
+import sampleDataJson from '../../data/sampledata.json';
 import { navigate, navigationRef } from '../../navigation/NavigationService';
 import Skeleton from './Skeleton';
 import {
@@ -114,24 +115,15 @@ const LoginScreen: React.FC = () => {
   };
 
   /**
-   * Fetch users from a remote sample JSON file.
+   * Fetch users from a local sample JSON file.
    * Falls back to local sample data if there's an error.
    */
   async function fetchUsers(): Promise<CometChat.User[]> {
     try {
-      const response = await fetch(
-        'https://assets.cometchat.io/sampleapp/sampledata.json',
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const fetchedUsers = data.users || [];
-        return fetchedUsers.map((user: any) => new CometChat.User(user));
-      } else {
-        throw new Error('Failed to load users');
-      }
+      const fetchedUsers = sampleDataJson.users || [];
+      return fetchedUsers.map((user: any) => new CometChat.User(user));
     } catch (error) {
-      console.error('Exception while fetching users:', error);
+      console.error('Exception while loading users from local file:', error);
       return await getDefaultUsers();
     }
   }

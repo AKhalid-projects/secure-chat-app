@@ -27,7 +27,6 @@ import Builder from '../../../assets/icons/Builder';
 import { useConfig, useConfigStore } from '../../../config/store'; // adjust import if needed
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Reset from '../../../assets/icons/Reset';
-import AiIcon from '../../../assets/icons/AiIcon';
 
 type ChatNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -213,20 +212,6 @@ const Conversations: React.FC<{}> = ({}) => {
                   height={24}
                   width={24}
                   color={theme.color.textPrimary}></AddComment>
-              ),
-              textColor: theme.color.textPrimary,
-              iconColor: theme.color.textPrimary,
-            },
-            {
-              text: t('AI_ASSISTANTS'),
-              onPress: () => {
-                navigation.navigate(SCREEN_CONSTANTS.AI_AGENTS);
-              },
-              icon: (
-                <AiIcon
-                  height={24}
-                  width={24}
-                  color={theme.color.textPrimary}></AiIcon>
               ),
               textColor: theme.color.textPrimary,
               iconColor: theme.color.textPrimary,

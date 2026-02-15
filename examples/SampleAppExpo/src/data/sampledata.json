@@ -1,0 +1,37 @@
+{
+    "users": [
+        {
+            "uid": "bub-user-uid-1",
+            "name": "Ahmed Mohammed",
+            "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"
+        },
+        {
+            "uid": "bub-user-uid-2",
+            "name": "Khaled Ali",
+            "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"
+        },
+        {
+            "uid": "bub-user-uid-3",
+            "name": "Mona Saleh",
+            "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"
+        },
+        {
+            "uid": "bub-user-uid-4",
+            "name": "Sara Youssef",
+            "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-4.webp"
+        },
+        {
+            "uid": "bub-user-uid-5",
+            "name": "Alaa Kamel",
+            "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-5.webp"
+        }
+    ],
+    "groups": [
+        {
+            "guid": "bub-group-guid-1",
+            "name": "BUB Group",
+            "icon": "https://assets.cometchat.io/sampleapp/v2/groups/cometchat-guid-1.webp"
+        }
+    ]
+}
+

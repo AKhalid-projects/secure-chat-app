@@ -36,5 +36,4 @@ export const SCREEN_CONSTANTS = {
   CALL_LOGS: 'CallLogs',
   CALL_DETAILS: 'CallDetails',
   QR_SCREEN: 'QRScreen',
-  AI_AGENTS: 'AIAgents',
 } as const;

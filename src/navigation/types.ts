@@ -24,7 +24,6 @@ export type RootStackParamList = {
     user?: CometChat.User;
     group?: CometChat.Group;
   };
-  AIAgents: undefined;
   BannedMembers: undefined;
   UserInfo: {
     user: CometChat.User;

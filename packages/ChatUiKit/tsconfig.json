@@ -12,12 +12,12 @@
     "noUnusedLocals": false,
     "sourceMap": true,
     "target": "ESNext",
-    "lib": ["ESNext", "DOM","ES6"],
+    "lib": ["ESNext", "DOM", "ES6"],
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "outDir": "lib",
     "declaration": true,
-    "strict": true,
+    "strict": true
   },
   "include": ["src"]
 }

@@ -9,13 +9,11 @@ import { CometChatUIEvents } from "../shared/events/CometChatUIEvents";
 import { deepMerge } from "../shared/helper/helperFunctions";
 import { Icon } from "../shared/icons/Icon";
 import { CometChatAvatar } from "../shared/views/CometChatAvatar";
-import { CometChatStatusIndicator } from "../shared/views/CometChatStatusIndicator";
 import { useTheme } from "../theme";
 import { MessageHeaderStyle } from "./styles";
 import { CommonUtils } from "../shared/utils/CommonUtils";
 import { DeepPartial } from "../shared/helper/types";
 import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
-import { CometChatAIAssistantChatHistory } from "../CometChatAIAssistantChatHistory/CometChatAIAssistantChatHistory";
 import { CometChatTooltipMenu, MenuItemInterface } from "../shared/views/CometChatTooltipMenu";
 
 export type CometChatMessageHeaderInterface = {
@@ -166,10 +164,9 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
   const [userObj, setUserObj] = useState<CometChat.User | undefined>(user);
   const [userStatus, setUserStatus] = useState(user && user.getStatus ? user.getStatus() : "");
   const [typingText, setTypingText] = useState("");
-  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ pageX: 0, pageY: 0 });
-  const receiverTypeRef = useRef(
+  const receiverTypeRef = useRef<string | null>(
     user ? CometChat.RECEIVER_TYPE.USER : group ? CometChat.RECEIVER_TYPE.GROUP : null
   );
 
@@ -183,7 +180,7 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
     if (options) return options({ user: userObj, group: groupObj });
     
     return [];
-  }, [options, userObj, groupObj, isAgenticUser]);
+  }, [options, userObj, groupObj]);
 
   // Handle option selection
   const handleOptionSelect = useCallback((item: MenuItemInterface) => {
@@ -197,6 +194,14 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
   useEffect(() => {
     setGroupObj(group);
   }, [group]);
+
+  useEffect(() => {
+    setUserObj(user);
+  }, [user]);
+
+  useEffect(() => {
+    receiverTypeRef.current = user ? CometChat.RECEIVER_TYPE.USER : group ? CometChat.RECEIVER_TYPE.GROUP : null;
+  }, [user, group]);
 
   useEffect(() => {
     setUserStatus(userObj ? userObj.getStatus() : "");
@@ -267,7 +272,7 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
       errorHandler(e);
       return <></>;
     }
-  }, [userObj, groupObj, statusIndicatorType, messageHeaderStyles]);
+  }, [userObj, groupObj, messageHeaderStyles]);
 
   /**
    * Renders subtitle view content.

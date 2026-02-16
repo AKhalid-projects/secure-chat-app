@@ -14,6 +14,10 @@ export type RootStackParamList = {
   Messages: {
     user?: CometChat.User;
     group?: CometChat.Group;
+    /** Serializable: use when navigating so state is safe. Resolved to User/Group in Messages. */
+    userUid?: string;
+    /** Serializable: use when navigating so state is safe. Resolved to Group in Messages. */
+    groupGuid?: string;
     fromMention?: boolean;
     fromMessagePrivately?: boolean;
     parentMessageId?: string;
@@ -36,6 +40,8 @@ export type RootStackParamList = {
     message: CometChat.BaseMessage;
     user?: CometChat.User;
     group?: CometChat.Group;
+    userUid?: string;
+    groupGuid?: string;
     highlightMessageId?: string;
   };
   AddMember: {

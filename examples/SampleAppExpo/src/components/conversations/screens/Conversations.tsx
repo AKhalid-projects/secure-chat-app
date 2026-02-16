@@ -74,16 +74,13 @@ const Conversations: React.FC<{}> = ({}) => {
     );
     
   const openMessagesFor = (item: CometChat.Conversation) => {
-    // Determine if it's a user or group conversation
     const isUser = item.getConversationType() === 'user';
     const isGroup = item.getConversationType() === 'group';
+    const withObj = item.getConversationWith();
 
-    // Navigate to Messages with appropriate params
     navigation.navigate('Messages', {
-      user: isUser ? (item.getConversationWith() as CometChat.User) : undefined,
-      group: isGroup
-        ? (item.getConversationWith() as CometChat.Group)
-        : undefined,
+      userUid: isUser ? (withObj as CometChat.User).getUid() : undefined,
+      groupGuid: isGroup ? (withObj as CometChat.Group).getGuid() : undefined,
     });
   };
 

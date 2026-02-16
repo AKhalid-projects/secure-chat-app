@@ -56,28 +56,18 @@ if (Platform.OS === 'android') {
             typeof data.conversationId === 'string'
               ? data.conversationId.split('_').slice(1).join('_')
               : '';
-          CometChat.getGroup(extractedId).then(
-            group => {
-              navigationRef.current?.dispatch(
-                StackActions.push('Messages', {
-                  group,
-                  parentMessageId: data.parentId,
-                }),
-              );
-            },
-            error => console.log('Error fetching group details:', error),
+          navigationRef.current?.dispatch(
+            StackActions.push('Messages', {
+              groupGuid: extractedId,
+              parentMessageId: data.parentId,
+            }),
           );
         } else if (data.receiverType === 'user') {
-          CometChat.getUser(data.sender).then(
-            ccUser => {
-              navigationRef.current?.dispatch(
-                StackActions.push('Messages', {
-                  user: ccUser,
-                  parentMessageId: data.parentId,
-                }),
-              );
-            },
-            error => console.log('Error fetching user details:', error),
+          navigationRef.current?.dispatch(
+            StackActions.push('Messages', {
+              userUid: data.sender,
+              parentMessageId: data.parentId,
+            }),
           );
         }
       }

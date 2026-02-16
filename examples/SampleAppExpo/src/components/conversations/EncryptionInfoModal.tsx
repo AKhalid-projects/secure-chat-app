@@ -16,7 +16,7 @@ const OVERLAY_BG = 'rgba(0,0,0,0.6)';
 
 const TITLE = 'Your chats and calls are private';
 const DESCRIPTION =
-  'End-to-end encryption keeps your personal messages and calls between you and the people you choose. No one outside of the chat, not even WhatsApp, can read, listen to, or share them. This includes your:';
+  'End-to-end encryption keeps your personal messages and calls between you and the people you choose. No one outside of the chat, not even Secure Chat, can read, listen to, or share them. This includes your:';
 const BULLETS = [
   'Text and voice messages',
   'Audio and video calls',
@@ -26,7 +26,7 @@ const BULLETS = [
 ];
 
 const DEFAULT_LEARN_MORE_URL =
-  'https://faq.whatsapp.com/1317759042886655';
+  '#';
 
 export type EncryptionInfoModalProps = {
   visible: boolean;
@@ -135,7 +135,7 @@ export default function EncryptionInfoModal({
               </TouchableOpacity>
 
               <View style={styles.illustrationWrap}>
-                <EncryptionIllustration primaryColor={theme.color.primary} />
+                <EncryptionIllustration primaryColor={String(theme.color.primary)} />
               </View>
 
               <Text style={[styles.title, { color: theme.color.textPrimary }]}>

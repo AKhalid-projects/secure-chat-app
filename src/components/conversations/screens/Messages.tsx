@@ -43,6 +43,8 @@ import Info from '../../../assets/icons/Info';
 import {useActiveChat} from '../../../utils/ActiveChatContext';
 import { useConfig } from '../../../config/store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import EncryptionNoticeBanner from '../EncryptionNoticeBanner';
+import EncryptionInfoModal from '../EncryptionInfoModal';
 
 const { width } = Dimensions.get('window');
 
@@ -50,8 +52,10 @@ type Props = StackScreenProps<RootStackParamList, 'Messages'>;
 
 const Messages: React.FC<Props> = ({ route, navigation }) => {
   const {
-    user,
-    group,
+    user: paramUser,
+    group: paramGroup,
+    userUid,
+    groupGuid,
     fromMention = false,
     fromMessagePrivately = false,
     parentMessageId: routeParentMessageId,
@@ -59,6 +63,13 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     searchKeyword,
     navigatedFromSearch
   } = route.params;
+
+  /** True if the value is a valid CometChat User instance (not a serialized plain object). */
+  const isValidUser = (u: unknown): u is CometChat.User =>
+    u != null && typeof (u as CometChat.User).getUid === 'function';
+  /** True if the value is a valid CometChat Group instance. */
+  const isValidGroup = (g: unknown): g is CometChat.Group =>
+    g != null && typeof (g as CometChat.Group).getGuid === 'function';
   const typingIndicator = useConfig(
     (state) => state.settings.chatFeatures.coreMessagingExperience.typingIndicator
   );
@@ -147,10 +158,16 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
   // Stable listener id for the lifetime of this component (prevents multiple listeners)
   const openmessageListenerIdRef = useRef('message_' + new Date().getTime());
   const lastOpenChatRef = useRef<{ uid: string; time: number } | null>(null);
-  const [localUser, setLocalUser] = useState<CometChat.User | undefined>(user);
+  const [localUser, setLocalUser] = useState<CometChat.User | undefined>(() =>
+    isValidUser(paramUser) ? paramUser : undefined
+  );
+  const [localGroup, setLocalGroup] = useState<CometChat.Group | undefined>(() =>
+    isValidGroup(paramGroup) ? paramGroup : undefined
+  );
   const [messageListKey, setMessageListKey] = useState(0);
   const [messageComposerKey, setMessageComposerKey] = useState(0);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [isEncryptionModalVisible, setEncryptionModalVisible] = useState(false);
 
   // Manage parentMessageId in parent component
   const [parentMessageId, setParentMessageId] = useState<string | undefined>(routeParentMessageId);
@@ -206,12 +223,46 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     return () => subscription.remove();
   }, [agentic]);
 
+  // Resolve User/Group from serializable IDs (fixes serialized params / wrong conversation).
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      if (userUid) {
+        if (!isValidUser(paramUser)) {
+          try {
+            const u = await CometChat.getUser(userUid);
+            if (mounted) setLocalUser(u);
+          } catch (e) {
+            console.warn('Messages: failed to fetch user', userUid, e);
+          }
+        } else if (mounted) setLocalUser(paramUser);
+      } else if (groupGuid) {
+        if (!isValidGroup(paramGroup)) {
+          try {
+            const g = await CometChat.getGroup(groupGuid);
+            if (mounted) setLocalGroup(g);
+          } catch (e) {
+            console.warn('Messages: failed to fetch group', groupGuid, e);
+          }
+        } else if (mounted) setLocalGroup(paramGroup);
+      } else if (isValidUser(paramUser)) {
+        if (mounted) setLocalUser(paramUser);
+      } else if (isValidGroup(paramGroup)) {
+        if (mounted) setLocalGroup(paramGroup);
+      } else {
+        if (mounted) { setLocalUser(undefined); setLocalGroup(undefined); }
+      }
+    };
+    run();
+    return () => { mounted = false; };
+  }, [userUid, groupGuid, paramUser, paramGroup]);
+
   useEffect(() => {
     // if it’s a user chat
-    if (user) {
-      setActiveChat({ type: 'user', id: user.getUid() });
-    } else if (group) {
-      setActiveChat({ type: 'group', id: group.getGuid() });
+    if (localUser) {
+      setActiveChat({ type: 'user', id: localUser.getUid() });
+    } else if (localGroup) {
+      setActiveChat({ type: 'group', id: localGroup.getGuid() });
     }
 
     // Cleanup on unmount => setActiveChat(null)
@@ -222,7 +273,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
         messageComposerRef.current.resetStreaming();
       }
     };
-  }, [user, group, setActiveChat]);
+  }, [localUser, localGroup, setActiveChat]);
 
   useEffect(() => {
     const backAction = () => {
@@ -274,7 +325,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     // This prevents stacking duplicate private chat screens because the group
     // screen remains mounted underneath the user chat.
     const currentListenerId = openmessageListenerIdRef.current;
-    if (group) {
+    if (localGroup) {
       CometChatUIEventHandler.addUIListener(currentListenerId, {
         openChat: ({ user: chatUser }) => {
           if (!chatUser) return;
@@ -299,8 +350,8 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
             // If the top route already represents this user chat, skip.
             if (
               topRoute?.name === 'Messages' &&
-              (topRoute as any)?.params?.user?.getUid &&
-              (topRoute as any).params.user.getUid() === uid
+              ((topRoute as any)?.params?.userUid === uid ||
+                ((topRoute as any)?.params?.user?.getUid && (topRoute as any).params.user.getUid() === uid))
             ) {
               return;
             }
@@ -309,8 +360,8 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
             const existingIndex = routes.findIndex(
               r =>
                 r.name === 'Messages' &&
-                (r as any)?.params?.user?.getUid &&
-                (r as any).params.user.getUid() === uid,
+                ((r as any)?.params?.userUid === uid ||
+                  ((r as any)?.params?.user?.getUid && (r as any).params.user.getUid() === uid)),
             );
             if (existingIndex !== -1) {
               const popCount = routes.length - existingIndex - 1;
@@ -321,7 +372,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
             }
 
             lastOpenChatRef.current = { uid, time: now };
-            navigation.push('Messages', { user: chatUser, fromMessagePrivately: true });
+            navigation.push('Messages', { userUid: chatUser.getUid(), fromMessagePrivately: true });
           } catch (e) {
             console.warn('openChat navigation prevented due to error', e);
           }
@@ -345,7 +396,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     return () => {
       CometChatUIEventHandler.removeUserListener(userListenerId);
       CometChat.removeUserListener(statusListenerId);
-      if (group) {
+      if (localGroup) {
         CometChatUIEventHandler.removeUIListener(currentListenerId);
       }
       blurSub();
@@ -353,7 +404,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
       focusSub();
     };
     // Listener re-attached only when group context changes
-  }, [navigation, group, userListenerId]);
+  }, [navigation, localGroup, userListenerId]);
 
   const handleccUserBlocked = ({ user: blockedUser }: { user: CometChat.User }) => {
     setLocalUser(CommonUtils.clone(blockedUser));
@@ -373,10 +424,10 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     setMessageComposerKey(prev => prev + 1);
     setShowHistoryModal(false);
     navigation.replace('Messages', {
-      user,
-      group,
+      userUid: localUser?.getUid(),
+      groupGuid: localGroup?.getGuid(),
     });
-  }, [navigation, user, group]);
+  }, [navigation, localUser, localGroup]);
 
   /** Open chat history modal */
   const handleChatHistoryClick = useCallback(() => {
@@ -435,11 +486,11 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
       const menuOptions = [];
 
       // Add info option first
-      if (group && loggedInUser) {
+      if (localGroup && loggedInUser) {
         menuOptions.push({
           text: 'Group Info',
           onPress: () => {
-            navigation.navigate('GroupInfo', { group });
+            navigation.navigate('GroupInfo', { group: localGroup });
           },
           icon: <Icon name="info" width={20} height={20} color={theme.color.iconSecondary} />,
         });
@@ -457,8 +508,8 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
       menuOptions.push({
         text: 'Search',
         onPress: () => {
-          if (group) {
-            navigation.navigate('SearchMessages', { group });
+          if (localGroup) {
+            navigation.navigate('SearchMessages', { group: localGroup });
           } else if (localUser) {
             navigation.navigate('SearchMessages', { user: localUser });
           }
@@ -468,7 +519,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
 
       return menuOptions;
     };
-  }, [navigation, group, localUser, theme, agentic, loggedInUser]);
+  }, [navigation, localGroup, localUser, theme, agentic, loggedInUser]);
 
 
   const getMentionsTap = useCallback(() => {
@@ -477,17 +528,17 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
         loggedInUser,
         theme,
       );
-    if (user) mentionsFormatter.setUser(user);
-    if (group) mentionsFormatter.setGroup(group);
+    if (localUser) mentionsFormatter.setUser(localUser);
+    if (localGroup) mentionsFormatter.setGroup(localGroup);
 
     mentionsFormatter.setOnMentionClick(
       (_message: CometChat.BaseMessage, uid: string) => {
         if (uid !== loggedInUser.getUid()) {
           // Get the user by UID and navigate to Messages
-          CometChat.getUser(uid)
+            CometChat.getUser(uid)
             .then((mentionedUser: CometChat.User) => {
               navigation.push('Messages', {
-                user: mentionedUser,
+                userUid: mentionedUser.getUid(),
                 fromMention: true,
               });
             })
@@ -498,7 +549,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
       },
     );
     return mentionsFormatter;
-  }, [user, group, loggedInUser, navigation, theme]);
+  }, [localUser, localGroup, loggedInUser, navigation, theme]);
 
   /** Theme override for agentic outgoing bubble */
   const providerTheme = useMemo(() => {
@@ -552,7 +603,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
       <View style={styles.flexOne}>
         <CometChatMessageHeader
           user={localUser}
-          group={group}
+          group={localGroup}
           onBack={() => {
             if (fromMention || fromMessagePrivately) {
               navigation.goBack();
@@ -563,10 +614,10 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
           showBackButton={true}
           usersStatusVisibility={userAndFriendsPresence}
           hideVoiceCallButton={
-            (user && !oneOnOneVoiceCalling) || (group && !groupVoiceConference)
+            (localUser && !oneOnOneVoiceCalling) || (localGroup && !groupVoiceConference)
           }
           hideVideoCallButton={
-            (user && !oneOnOneVideoCalling) || (group && !groupVideoConference)
+            (localUser && !oneOnOneVideoCalling) || (localGroup && !groupVideoConference)
           }
           hideChatHistoryButton={false}
           hideNewChatButton={false}
@@ -575,11 +626,17 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
           options={options}
         />
         <View style={styles.flexOne}>
+          {localUser && (
+            <EncryptionNoticeBanner
+              onPress={() => setEncryptionModalVisible(true)}
+            />
+          )}
+          <View style={styles.flexOne}>
           <CometChatMessageList
             key={messageListKey}
             textFormatters={[getMentionsTap()]}
-            user={user}
-            group={group}
+            user={localUser}
+            group={localGroup}
             parentMessageId={parentMessageId}
             // callback signature expects (messageObject, messageBubbleView)
             onThreadRepliesPress={(messageObject, _messageBubbleView) => {
@@ -590,7 +647,11 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
                   child: () => null,
                 },
               );
-              navigation.navigate('ThreadView', { message: messageObject, user, group });
+              navigation.navigate('ThreadView', {
+                message: messageObject,
+                userUid: localUser?.getUid(),
+                groupGuid: localGroup?.getGuid(),
+              });
             }}
             hideReplyInThreadOption={!threadConversationAndReplies}
             hideEditMessageOption={!editMessage}
@@ -609,7 +670,13 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
             showMarkAsUnreadOption={true}
             startFromUnreadMessages={true}
           />
+          </View>
         </View>
+
+        <EncryptionInfoModal
+          visible={isEncryptionModalVisible}
+          onClose={() => setEncryptionModalVisible(false)}
+        />
 
         {/* Chat History Drawer */}
         {agentic && (
@@ -627,7 +694,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
               >
                 <CometChatAIAssistantChatHistory
                   user={localUser}
-                  group={group}
+                  group={localGroup}
                   onClose={() => setShowHistoryModal(false)}
                   onMessageClicked={handleHistoryMessageClick}
                   onError={handleChatHistoryError}
@@ -680,7 +747,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
             ref={messageComposerRef}
             parentMessageId={parentMessageId}
             user={localUser}
-            group={group}
+            group={localGroup}
             keyboardAvoidingViewProps={{
               ...(Platform.OS === 'android'
                 ? {}

@@ -49,7 +49,7 @@ const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
   useEffect(() => {
     if (!isCreateGroupSheetVisible && !isJoinGroupSheetVisible && pendingChat) {
       const timer = setTimeout(() => {
-        navigation.navigate(SCREEN_CONSTANTS.MESSAGES, { group: pendingChat });
+        navigation.navigate(SCREEN_CONSTANTS.MESSAGES, { groupGuid: pendingChat.getGuid() });
         setPendingChat(null);
       }, 300);
       return () => clearTimeout(timer);

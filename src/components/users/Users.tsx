@@ -27,7 +27,7 @@ const Users: React.FC = () => {
       <CometChatUsers
         onItemPress={(user: CometChat.User) => {
           navigation.navigate('Messages', {
-            user: user,
+            userUid: user.getUid(),
           });
         }}
         usersRequestBuilder={new CometChat.UsersRequestBuilder()

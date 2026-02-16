@@ -47,8 +47,13 @@ const ThreadView = () => {
   const navigation = useNavigation<ThreadViewNavProp>(); // <-- added navigation
   const { goBack } = navigation;
   const theme = useTheme();
-  const { message, user, group } = params || {};
+  const { message, user: paramUser, group: paramGroup, userUid, groupGuid } = params || {};
   const { t } = useCometChatTranslation();
+
+  const isValidUser = (u: unknown): u is CometChat.User =>
+    u != null && typeof (u as CometChat.User).getUid === 'function';
+  const isValidGroup = (g: unknown): g is CometChat.Group =>
+    g != null && typeof (g as CometChat.Group).getGuid === 'function';
 
   const messageDeliveryAndReadReceipts = useConfig(
       (state) => state.settings.chatFeatures.coreMessagingExperience.messageDeliveryAndReadReceipts
@@ -85,32 +90,45 @@ const ThreadView = () => {
     CometChatUIKit.loggedInUser!,
   ).current;
 
-  const [localUser, setLocalUser] = useState<CometChat.User | undefined>(
-    params?.user,
+  const [localUser, setLocalUser] = useState<CometChat.User | undefined>(() =>
+    isValidUser(paramUser) ? paramUser : undefined
+  );
+  const [localGroup, setLocalGroup] = useState<CometChat.Group | undefined>(() =>
+    isValidGroup(paramGroup) ? paramGroup : undefined
   );
 
-  // keep listener ids unique
   const userListenerId = 'thread_user_' + new Date().getTime();
 
-  // Fetch latest user on mount (if user present)
   useEffect(() => {
     let mounted = true;
     const init = async () => {
       try {
-        if (params?.user) {
-          const uid = params.user.getUid();
-          const fresh = await CometChat.getUser(uid);
-          if (mounted) setLocalUser(CommonUtils.clone(fresh));
+        if (userUid) {
+          if (isValidUser(paramUser)) {
+            if (mounted) setLocalUser(paramUser);
+          } else {
+            const fresh = await CometChat.getUser(userUid);
+            if (mounted) setLocalUser(CommonUtils.clone(fresh));
+          }
+        } else if (groupGuid) {
+          if (isValidGroup(paramGroup)) {
+            if (mounted) setLocalGroup(paramGroup);
+          } else {
+            const g = await CometChat.getGroup(groupGuid);
+            if (mounted) setLocalGroup(g);
+          }
+        } else if (isValidUser(paramUser)) {
+          if (mounted) setLocalUser(paramUser);
+        } else if (isValidGroup(paramGroup)) {
+          if (mounted) setLocalGroup(paramGroup);
         }
       } catch (err) {
-        console.error('Error fetching user in ThreadView:', err);
+        console.error('Error fetching user/group in ThreadView:', err);
       }
     };
     init();
-    return () => {
-      mounted = false;
-    };
-  }, [params?.user]);
+    return () => { mounted = false; };
+  }, [userUid, groupGuid, paramUser, paramGroup]);
 
   // add UI listeners for block/unblock to update localUser
   useEffect(() => {
@@ -205,27 +223,21 @@ const handleBack = useCallback(() => {
         loggedInUser,
         theme,
       );
-    if (user) mentionsFormatter.setUser(user);
-    if (group) mentionsFormatter.setGroup(group);
+    if (localUser) mentionsFormatter.setUser(localUser);
+    if (localGroup) mentionsFormatter.setGroup(localGroup);
 
     mentionsFormatter.setOnMentionClick(
       (_message: CometChat.BaseMessage, uid: string) => {
         if (uid !== loggedInUser.getUid()) {
-          CometChat.getUser(uid)
-            .then((mentionedUser: CometChat.User) => {
-              navigation.push('Messages', {
-                user: mentionedUser,
-                fromMention: true,
-              });
-            })
-            .catch((error: any) => {
-              console.error('Error fetching mentioned user:', error);
-            });
+          navigation.push('Messages', {
+            userUid: uid,
+            fromMention: true,
+          });
         }
       },
     );
     return mentionsFormatter;
-  }, [user, group, loggedInUser, navigation, theme]);
+  }, [localUser, localGroup, loggedInUser, navigation, theme]);
 
   const threadHeaderMentionsFormatter = useMemo(
     () => getMentionsTap(),
@@ -267,7 +279,7 @@ const handleBack = useCallback(() => {
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {user ? user?.getName() : group?.getName()}
+            {localUser ? localUser.getName() : localGroup?.getName()}
           </Text>
         </View>
       </View>
@@ -282,8 +294,8 @@ const handleBack = useCallback(() => {
       {/* Threaded Message List */}
       <View style={{ flex: 1 }}>
         <CometChatMessageList
-          user={user}
-          group={group}
+          user={localUser}
+          group={localGroup}
           parentMessageId={message.getId().toString()}
           textFormatters={[getMentionsTap()]}
           receiptsVisibility={messageDeliveryAndReadReceipts}
@@ -333,7 +345,7 @@ const handleBack = useCallback(() => {
       ) : (
         <CometChatMessageComposer
           user={localUser}
-          group={group}
+          group={localGroup}
           parentMessageId={message.getId()}
           onError={(error: any) => console.error('Composer Error:', error)}
           keyboardAvoidingViewProps={

@@ -89,7 +89,7 @@ const CreateConversation: React.FC<Props> = ({ route, navigation }) => {
               .setUIDs([])}
             hideHeader
             onItemPress={(user: CometChat.User) =>
-              navigation.navigate('Messages', { user })
+              navigation.navigate('Messages', { userUid: user.getUid() })
             }
           />
         ) : (

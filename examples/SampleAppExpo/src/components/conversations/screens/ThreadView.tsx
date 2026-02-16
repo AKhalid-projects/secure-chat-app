@@ -244,6 +244,16 @@ const handleBack = useCallback(() => {
     [getMentionsTap],
   );
 
+  // Don't render chat UI until user/group is resolved - avoids CometChatMessageList
+  // "Cannot read property 'setTypes' of undefined"
+  if (!localUser && !localGroup) {
+    return (
+      <View style={[styles.flexOne, styles.loadingContainer, { backgroundColor: theme.color.background1 }]}>
+        <Text style={styles.loadingText}>{t('LOADING') || 'Loading thread...'}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{ backgroundColor: theme.color.background1, flex: 1 }}>
       {/* Custom Header */}
@@ -366,6 +376,15 @@ const handleBack = useCallback(() => {
 };
 
 const styles = StyleSheet.create({
+  flexOne: { flex: 1 },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+  },
   headerStyle: {
     paddingVertical: 10,
     paddingLeft: 10,

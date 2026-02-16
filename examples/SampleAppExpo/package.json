@@ -3,6 +3,7 @@
   "version": "5.2.10",
   "main": "index.js",
   "scripts": {
+    "postinstall": "patch-package",
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -53,6 +54,7 @@
   "private": true,
   "devDependencies": {
     "@types/react": "~19.1.10",
+    "patch-package": "^8.0.1",
     "typescript": "~5.9.2"
   }
 }

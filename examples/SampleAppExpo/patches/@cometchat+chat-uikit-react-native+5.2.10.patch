@@ -1,0 +1,30 @@
+diff --git a/node_modules/@cometchat/chat-uikit-react-native/.DS_Store b/node_modules/@cometchat/chat-uikit-react-native/.DS_Store
+new file mode 100644
+index 0000000..e8457e0
+Binary files /dev/null and b/node_modules/@cometchat/chat-uikit-react-native/.DS_Store differ
+diff --git a/node_modules/@cometchat/chat-uikit-react-native/src/CometChatMessageList/CometChatMessageList.tsx b/node_modules/@cometchat/chat-uikit-react-native/src/CometChatMessageList/CometChatMessageList.tsx
+index 817e24e..4541bc3 100644
+--- a/node_modules/@cometchat/chat-uikit-react-native/src/CometChatMessageList/CometChatMessageList.tsx
++++ b/node_modules/@cometchat/chat-uikit-react-native/src/CometChatMessageList/CometChatMessageList.tsx
+@@ -652,6 +652,12 @@ export const CometChatMessageList = memo(
+           return;
+         }
+ 
++        // Require user or group - avoid "Cannot read property 'setTypes' of undefined"
++        if (!user && !group) {
++          msgRequestBuilder.current = null as any;
++          return;
++        }
++
+         if (user) {
+           _defaultRequestBuilder = new CometChat.MessagesRequestBuilder()
+             .setLimit(30)
+@@ -712,7 +718,7 @@ export const CometChatMessageList = memo(
+         }
+ 
+         msgRequestBuilder.current = _updatedCustomRequestBuilder;
+-      }, [hideGroupActionMessages, isAgenticUser, parentMessageId]);
++      }, [hideGroupActionMessages, isAgenticUser, parentMessageId, user, group]);
+ 
+       const theme = useTheme();
+       const { t } = useCometChatTranslation();

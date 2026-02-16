@@ -16,7 +16,7 @@ const OVERLAY_BG = 'rgba(0,0,0,0.6)';
 
 const TITLE = 'Your chats and calls are private';
 const DESCRIPTION =
-  'End-to-end encryption keeps your personal messages and calls between you and the people you choose. No one outside of the chat, not even Secure Chat, can read, listen to, or share them. This includes your:';
+  'End-to-end encryption keeps your personal messages and calls between you and the people you choose. No one outside of the chat, not even WhatsApp, can read, listen to, or share them. This includes your:';
 const BULLETS = [
   'Text and voice messages',
   'Audio and video calls',
@@ -26,7 +26,7 @@ const BULLETS = [
 ];
 
 const DEFAULT_LEARN_MORE_URL =
-  '#';
+  'https://faq.whatsapp.com/1317759042886655';
 
 export type EncryptionInfoModalProps = {
   visible: boolean;
@@ -34,17 +34,8 @@ export type EncryptionInfoModalProps = {
   learnMoreUrl?: string;
 };
 
-type EncryptionIllustrationProps = {
-  accentColor: string;
-  paperColor: string;
-  strokeColor: string;
-};
-
-function EncryptionIllustration({
-  accentColor,
-  paperColor,
-  strokeColor,
-}: EncryptionIllustrationProps) {
+function EncryptionIllustration({ primaryColor }: { primaryColor: string }) {
+  const paperWhite = '#F5F5DC';
   const size = 120;
 
   return (
@@ -56,8 +47,8 @@ function EncryptionIllustration({
         width={48}
         height={56}
         rx={2}
-        fill={paperColor}
-        stroke={strokeColor}
+        fill={paperWhite}
+        stroke={primaryColor}
         strokeWidth={1}
       />
       {/* Circular photo/media icon on the document */}
@@ -66,31 +57,31 @@ function EncryptionIllustration({
         cy={58}
         r={14}
         fill="none"
-        stroke={strokeColor}
+        stroke={primaryColor}
         strokeWidth={2}
       />
-      <Circle cx={44} cy={54} r={2} fill={strokeColor} />
+      <Circle cx={44} cy={54} r={2} fill={primaryColor} />
       <Path
         d="M42 62 L48 56 L54 60 L54 64 L42 64 Z"
-        fill={strokeColor}
+        fill={primaryColor}
         opacity={0.6}
       />
-      {/* Safe / cabinet - main accent shape */}
+      {/* Safe / cabinet - main shape */}
       <Path
         d="M52 28 L68 28 L72 32 L72 88 L48 88 L48 32 Z"
-        fill={accentColor}
+        fill={primaryColor}
       />
       <Path
         d="M50 30 L70 30 L74 34 L74 86 L46 86 L46 34 Z"
         fill="none"
-        stroke={strokeColor}
+        stroke={primaryColor}
         strokeWidth={1}
       />
       {/* Safe door outline */}
-      <Rect x={52} y={36} width={18} height={44} rx={1} fill={strokeColor} />
+      <Rect x={52} y={36} width={18} height={44} rx={1} fill={primaryColor} opacity={0.6} />
       {/* Safe circular handle */}
-      <Circle cx={61} cy={58} r={6} fill={accentColor} stroke={strokeColor} strokeWidth={1} />
-      <Circle cx={61} cy={58} r={3} fill={strokeColor} />
+      <Circle cx={61} cy={58} r={6} fill={primaryColor} stroke={primaryColor} strokeWidth={1} />
+      <Circle cx={61} cy={58} r={3} fill={paperWhite} />
     </Svg>
   );
 }
@@ -101,12 +92,6 @@ export default function EncryptionInfoModal({
   learnMoreUrl = DEFAULT_LEARN_MORE_URL,
 }: EncryptionInfoModalProps) {
   const theme = useTheme();
-  const cardBg = (theme.color.background2 ?? theme.color.background1) as string;
-  const titleColor = theme.color.textPrimary as string;
-  const bodyColor = theme.color.textSecondary as string;
-  const accentColor = theme.color.primary as string;
-  const paperColor = (theme.color.background3 ?? theme.color.background2) as string;
-  const strokeColor = (theme.color.borderDefault ?? theme.color.textTertiary) as string;
 
   useEffect(() => {
     if (!visible) return;
@@ -132,35 +117,41 @@ export default function EncryptionInfoModal({
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={[styles.overlay, { backgroundColor: OVERLAY_BG }]}>
           <TouchableWithoutFeedback onPress={() => {}}>
-            <View style={[styles.card, { backgroundColor: cardBg }]}>
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: theme.color.background1 },
+              ]}
+            >
               <TouchableOpacity
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 onPress={onClose}
-                style={[styles.closeButton, { backgroundColor: theme.color.borderDefault }]}
+                style={[
+                  styles.closeButton,
+                  { backgroundColor: theme.color.background3 },
+                ]}
               >
-                <Text style={[styles.closeText, { color: titleColor }]}>✕</Text>
+                <Text style={[styles.closeText, { color: theme.color.textPrimary }]}>✕</Text>
               </TouchableOpacity>
 
               <View style={styles.illustrationWrap}>
-                <EncryptionIllustration
-                  accentColor={accentColor}
-                  paperColor={paperColor}
-                  strokeColor={strokeColor}
-                />
+                <EncryptionIllustration primaryColor={theme.color.primary} />
               </View>
 
-              <Text style={[styles.title, { color: titleColor }]}>{TITLE}</Text>
-              <Text style={[styles.description, { color: bodyColor }]}>
+              <Text style={[styles.title, { color: theme.color.textPrimary }]}>
+                {TITLE}
+              </Text>
+              <Text style={[styles.description, { color: theme.color.textSecondary }]}>
                 {DESCRIPTION}
               </Text>
 
               <View style={styles.bulletList}>
                 {BULLETS.map((item, index) => (
                   <View key={index} style={styles.bulletRow}>
-                    <Text style={[styles.bullet, { color: bodyColor }]}>
+                    <Text style={[styles.bullet, { color: theme.color.textSecondary }]}>
                       •{' '}
                     </Text>
-                    <Text style={[styles.bulletText, { color: bodyColor }]}>
+                    <Text style={[styles.bulletText, { color: theme.color.textSecondary }]}>
                       {item}
                     </Text>
                   </View>
@@ -172,7 +163,7 @@ export default function EncryptionInfoModal({
                 onPress={handleLearnMore}
                 style={styles.learnMoreWrap}
               >
-                <Text style={[styles.learnMore, { color: accentColor }]}>
+                <Text style={[styles.learnMore, { color: theme.color.primary }]}>
                   Learn more
                 </Text>
               </TouchableOpacity>

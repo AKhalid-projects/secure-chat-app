@@ -14,6 +14,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../navigation/types';
 import { Animated, Easing } from 'react-native';
 import Flash from '../../../assets/icons/Flash';
+import { useConfigStore } from '../../../config/store';
 import sync from '../../../assets/icons/cometchat_sync_img.png';
 
 interface ConfigData {
@@ -109,12 +110,11 @@ const QRScreen: React.FC = () => {
       // Save to AsyncStorage
       await AsyncStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(configData));
       try {
-        const { useConfigStore } = await import('../../../config/store');
         // Use the data property which contains the actual config structure
-        useConfigStore.setState({ config: configData.data });        
+        useConfigStore.setState({ config: configData.data });
         await AsyncStorage.setItem('@config_updated', 'true');
-      } catch (importError) {
-        console.log('Config store not available or failed to update:', importError);
+      } catch (storeError) {
+        console.log('Config store not available or failed to update:', storeError);
       }
 
       return true;

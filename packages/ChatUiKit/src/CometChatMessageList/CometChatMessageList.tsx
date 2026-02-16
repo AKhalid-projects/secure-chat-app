@@ -652,6 +652,12 @@ export const CometChatMessageList = memo(
           return;
         }
 
+        // Require user or group - avoid "Cannot read property 'setTypes' of undefined"
+        if (!user && !group) {
+          msgRequestBuilder.current = null as any;
+          return;
+        }
+
         if (user) {
           _defaultRequestBuilder = new CometChat.MessagesRequestBuilder()
             .setLimit(30)

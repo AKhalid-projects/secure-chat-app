@@ -17,14 +17,12 @@ import {
   Dimensions,
   AppState,
   AppStateStatus,
-  ActivityIndicator,
 } from 'react-native';
 import {
   CometChatUIKit,
   CometChatMessageHeader,
   CometChatMessageList,
   CometChatMessageComposer,
-  CometChatAvatar,
   useTheme,
   CometChatUIEventHandler,
   CometChatUIEvents,
@@ -45,7 +43,7 @@ import Info from '../../../assets/icons/Info';
 import {useActiveChat} from '../../../utils/ActiveChatContext';
 import { useConfig } from '../../../config/store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import EncryptionNoticeInlineBanner from '../EncryptionNoticeInlineBanner';
+import EncryptionNoticeBanner from '../EncryptionNoticeBanner';
 import EncryptionInfoModal from '../EncryptionInfoModal';
 
 const { width } = Dimensions.get('window');
@@ -53,7 +51,6 @@ const { width } = Dimensions.get('window');
 type Props = StackScreenProps<RootStackParamList, 'Messages'>;
 
 const Messages: React.FC<Props> = ({ route, navigation }) => {
-  const params = route.params ?? {};
   const {
     user: paramUser,
     group: paramGroup,
@@ -65,7 +62,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     messageId,
     searchKeyword,
     navigatedFromSearch
-  } = params;
+  } = route.params;
 
   /** True if the value is a valid CometChat User instance (not a serialized plain object). */
   const isValidUser = (u: unknown): u is CometChat.User =>
@@ -601,39 +598,22 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     };
   }, [agentic, theme]);
 
+  // Don't render chat UI until user/group is resolved - avoids CometChatMessageList
+  // "Cannot read property 'setTypes' of undefined" when both are undefined
+  if (!localUser && !localGroup) {
+    return (
+      <View style={[styles.flexOne, styles.loadingContainer]}>
+        <Text style={styles.loadingText}>Loading conversation...</Text>
+      </View>
+    );
+  }
+
   return (
     <CometChatThemeProvider theme={providerTheme}>
       <View style={styles.flexOne}>
         <CometChatMessageHeader
           user={localUser}
           group={localGroup}
-          LeadingView={() => (
-            <View>
-              <CometChatAvatar
-                image={
-                  localUser?.getAvatar()
-                    ? { uri: localUser.getAvatar() }
-                    : localGroup?.getIcon()
-                      ? { uri: localGroup.getIcon() }
-                      : undefined
-                }
-                name={(localUser?.getName() ?? localGroup?.getName()) ?? ''}
-              />
-            </View>
-          )}
-          AuxiliaryButtonView={() =>
-            ChatConfigurator.getDataSource().getAuxiliaryHeaderAppbarOptions(
-              localUser,
-              localGroup,
-              {
-                callButtonStyle: theme.messageHeaderStyles?.callButtonStyle,
-                hideVideoCallButton:
-                  (localUser && !oneOnOneVideoCalling) || (localGroup && !groupVideoConference),
-                hideVoiceCallButton:
-                  (localUser && !oneOnOneVoiceCalling) || (localGroup && !groupVoiceConference),
-              }
-            )
-          }
           onBack={() => {
             if (fromMention || fromMessagePrivately) {
               navigation.goBack();
@@ -656,18 +636,10 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
           options={options}
         />
         <View style={styles.flexOne}>
-          {!(localUser || localGroup) ? (
-            <View style={[styles.flexOne, styles.centered]}>
-              <ActivityIndicator size="large" color={theme.color.primary} />
-            </View>
-          ) : (
-            <>
-          {!groupGuid && !localGroup && (localUser ?? userUid) && (
-            <View style={styles.encryptionBannerWrap} collapsable={false}>
-              <EncryptionNoticeInlineBanner
-                onPress={() => setEncryptionModalVisible(true)}
-              />
-            </View>
+          {localUser && (
+            <EncryptionNoticeBanner
+              onPress={() => setEncryptionModalVisible(true)}
+            />
           )}
           <View style={styles.flexOne}>
           <CometChatMessageList
@@ -709,8 +681,6 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
             startFromUnreadMessages={true}
           />
           </View>
-            </>
-          )}
         </View>
 
         <EncryptionInfoModal
@@ -818,12 +788,13 @@ const styles = StyleSheet.create({
   flexOne: {
     flex: 1,
   },
-  encryptionBannerWrap: {
-    flexShrink: 0,
-  },
-  centered: {
-    justifyContent: 'center',
+  loadingContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
   },
   blockedContainer: {
     alignItems: 'center',

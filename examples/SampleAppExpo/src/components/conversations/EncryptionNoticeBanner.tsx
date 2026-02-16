@@ -7,6 +7,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { useTheme } from '@cometchat/chat-uikit-react-native';
 
 const LOCK_ICON_SIZE = 16;
 
@@ -33,19 +34,28 @@ export default function EncryptionNoticeBanner({
   onPress,
   containerStyle,
 }: EncryptionNoticeBannerProps) {
-  const bannerYellow = '#C5D4C3';
-  const bannerBg = '#2D3B2D';
+  const theme = useTheme();
 
   return (
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
-      style={[styles.banner, { backgroundColor: bannerBg }, containerStyle]}
+      style={[
+        styles.banner,
+        {
+          backgroundColor: theme.color.background3,
+          borderLeftWidth: 4,
+          borderLeftColor: theme.color.primary,
+        },
+        containerStyle,
+      ]}
     >
       <View style={styles.iconWrap}>
-        <LockIcon color={bannerYellow} size={LOCK_ICON_SIZE} />
+        <LockIcon color={theme.color.primary} size={LOCK_ICON_SIZE} />
       </View>
-      <Text style={[styles.text, { color: bannerYellow }]}>{BANNER_TEXT}</Text>
+      <Text style={[styles.text, { color: theme.color.textPrimary }]}>
+        {BANNER_TEXT}
+      </Text>
     </TouchableOpacity>
   );
 }

@@ -1,8 +1,9 @@
 # OSX
+#
 .DS_Store
-*.pem
 
 # Xcode
+#
 build/
 *.pbxuser
 !default.pbxuser
@@ -21,7 +22,8 @@ DerivedData
 *.xcuserstate
 **/.xcode.env.local
 
-# Android / IntelliJ
+# Android/IntelliJ
+#
 build/
 .idea
 .gradle
@@ -32,35 +34,20 @@ local.properties
 *.keystore
 !debug.keystore
 
-# Node
+
+# node.js
+#
 node_modules/
 npm-debug.log
 yarn-error.log
-npm-debug.*
-yarn-debug.*
 
-# Expo (app at repo root)
-.expo/
-dist/
-web-build/
-expo-env.d.ts
+# fastlane
+#
+# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the
+# screenshots whenever they are needed.
+# For more information about the recommended setup visit:
+# https://docs.fastlane.tools/best-practices/source-control/
 
-# Native project folders (generated; do not commit)
-/android/
-/ios/
-
-# Native secrets / signing
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# Fastlane
 **/fastlane/report.xml
 **/fastlane/Preview.html
 **/fastlane/screenshots
@@ -69,11 +56,14 @@ expo-env.d.ts
 # Bundle artifact
 *.jsbundle
 
-# Ruby / CocoaPods (ChatUiKit and app)
+# Ruby / CocoaPods
 **/Pods/
 /vendor/bundle/
 
-# Testing
+# Temporary files created by Metro to check the health of the file watcher
+.metro-health-check*
+
+# testing
 /coverage
 
 # Yarn
@@ -84,8 +74,6 @@ expo-env.d.ts
 !.yarn/sdks
 !.yarn/versions
 
-# Local env
-.env*.local
-
-# TypeScript
-*.tsbuildinfo
+# Ignore android and ios folders in SecureChatApp
+examples/SecureChatApp/android/
+examples/SecureChatApp/ios/

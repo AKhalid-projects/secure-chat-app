@@ -164,11 +164,21 @@ npx expo run:ios --device
 
 ### Running on Android
 
+Install the Android SDK (e.g. via Android Studio). Gradle must find it: set **`ANDROID_HOME`** to your SDK directory (on macOS, often `~/Library/Android/sdk`), **or** create **`android/local.properties`** with a single line `sdk.dir=/absolute/path/to/sdk`. That file is machine-specific and is not committed.
+
 ```bash
 npx expo run:android
 ```
 
 ## Troubleshooting
+
+### Android: “SDK location not found”
+
+If the build fails with `SDK location not found` / `ANDROID_HOME`, set `ANDROID_HOME` or add `sdk.dir` in `android/local.properties` as described under [Running on Android](#running-on-android).
+
+### Android: `Could not find app.notifee:core`
+
+`@notifee/react-native` loads its native core from a **local Maven repo** under `node_modules/@notifee/react-native/android/libs`. Gradle must list that path under `allprojects.repositories` in `android/build.gradle`. This repo uses the Expo config plugin `plugins/withAndroidNotifeeMaven.js` (see `app.json`) so `npx expo prebuild` injects it automatically. If you still see the error, run `npm install` (so `node_modules/@notifee/.../libs` exists) and confirm the `maven { url("$rootDir/../node_modules/@notifee/react-native/android/libs") }` line is present.
 
 ### Build Database Locked Error
 

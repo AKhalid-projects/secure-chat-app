@@ -62,6 +62,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "./plugins/withAndroidNotifeeMaven.js",
       [
         "expo-font",
         {

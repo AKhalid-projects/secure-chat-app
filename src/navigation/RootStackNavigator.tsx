@@ -32,12 +32,11 @@ import SearchMessages from '../components/conversations/screens/SearchMessages';
 
 type Props = {
   isLoggedIn: boolean;
-  hasValidAppCredentials: boolean;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials: _hasValidAppCredentials}: Props) => {
+const RootStackNavigator = ({isLoggedIn}: Props) => {
   const theme = useTheme();
   const NavigationTheme = {
     ...DefaultTheme,
@@ -68,9 +67,7 @@ const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials: _hasValidAppCre
           initialRouteName={
             isLoggedIn
               ? SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR
-              : _hasValidAppCredentials
-                ? SCREEN_CONSTANTS.SIGN_IN
-                : SCREEN_CONSTANTS.APP_CRED
+              : SCREEN_CONSTANTS.SIGN_IN
           }
           screenOptions={{
             gestureEnabled: true,

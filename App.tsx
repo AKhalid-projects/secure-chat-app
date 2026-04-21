@@ -68,7 +68,6 @@ const App = (): React.ReactElement => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [currentToken, setCurrentToken] = useState("");
   const [isTokenRegistered, setIsTokenRegistered] = useState(false);
-  const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
   const [navigationReadyFlag, setNavigationReadyFlag] = useState(false);
   const styleConfig = useConfig(state => state?.settings?.style);
   const theme : { light:  DeepPartial<CometChatTheme>; dark: DeepPartial<CometChatTheme> } = {
@@ -97,26 +96,20 @@ const App = (): React.ReactElement => {
   useEffect(() => {
     async function init() {
       try {
-        // Retrieve stored app credentials or default to an empty object.
-        const AppData = (await AsyncStorage.getItem("appCredentials")) || "{}";
-        const storedCredentials = JSON.parse(AppData);
-
-        // Determine the final credentials (from AsyncStorage or AppConstants).
-        const finalAppId = storedCredentials.appId || AppConstants.appId;
-        const finalAuthKey = storedCredentials.authKey || AppConstants.authKey;
-        const finalRegion = storedCredentials.region || AppConstants.region;
-
-        // Set hasValidAppCredentials based on whether all values are available.
-        if (finalAppId && finalAuthKey && finalRegion) {
-          setHasValidAppCredentials(true);
-        } else {
-          setHasValidAppCredentials(false);
-        }
+        await AsyncStorage.setItem(
+          "appCredentials",
+          JSON.stringify({
+            appId: AppConstants.appId,
+            authKey: AppConstants.authKey,
+            region: AppConstants.region,
+            restApiKey: AppConstants.restApiKey,
+          }),
+        );
 
         await CometChatUIKit.init({
-          appId: finalAppId,
-          authKey: finalAuthKey,
-          region: finalRegion,
+          appId: AppConstants.appId,
+          authKey: AppConstants.authKey,
+          region: AppConstants.region,
           subscriptionType: CometChat.AppSettings
             .SUBSCRIPTION_TYPE_ALL_USERS as UIKitSettings["subscriptionType"],
         });
@@ -125,7 +118,6 @@ const App = (): React.ReactElement => {
       } catch (error) {
         console.log("Error during initialization", error);
       } finally {
-        // Mark initialization as complete.
         setIsInitializing(false);
       }
     }
@@ -652,10 +644,7 @@ const App = (): React.ReactElement => {
             }}>
             <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
               {/* Render the main navigation stack, passing the login status as a prop */}
-              <RootStackNavigator
-                isLoggedIn={isLoggedIn}
-                hasValidAppCredentials={hasValidAppCredentials}
-              />
+              <RootStackNavigator isLoggedIn={isLoggedIn} />
             </SafeAreaView>
           </AuthContext.Provider>
         </CometChatI18nProvider>

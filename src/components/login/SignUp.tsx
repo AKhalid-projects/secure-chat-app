@@ -15,6 +15,7 @@ import {SCREEN_CONSTANTS} from '../../utils/AppConstants';
 import {
   createCometChatUser,
   mapCometChatAuthError,
+  saveSignUpPassword,
   signInWithUid,
 } from '../../services/cometchatAuth';
 
@@ -30,6 +31,8 @@ const SignUp: React.FC = () => {
   const [privateEmail, setPrivateEmail] = useState('');
   const [privateContactNumber, setPrivateContactNumber] = useState('');
   const [withAuthToken, setWithAuthToken] = useState(true);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,6 +47,14 @@ const SignUp: React.FC = () => {
 
   const createAndSignIn = async () => {
     if (!uid.trim() || !name.trim() || isSubmitting) return;
+    if (password.length < 6) {
+      setError('Use a password of at least 6 characters.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
     setError('');
     setIsSubmitting(true);
     try {
@@ -60,6 +71,7 @@ const SignUp: React.FC = () => {
         withAuthToken,
       });
       await signInWithUid(uid);
+      await saveSignUpPassword(uid, password);
       navigate(SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR);
       navigationRef.reset({
         index: 0,
@@ -80,22 +92,13 @@ const SignUp: React.FC = () => {
         Create CometChat User
       </Text>
       <Text style={[styles.subtitle, theme.typography.body.regular, {color: theme.color.textSecondary}]}>
-        Required: uid, name. Optional fields follow CometChat `/users` create API.
+        Required: uid, name, password. CometChat keys are bundled in the app. Optional profile fields follow the `/users` API.
       </Text>
-      <Text style={[styles.hint, theme.typography.caption1.regular, {color: theme.color.textTertiary}]}>
-        Creating a user calls the REST API and needs your full-access REST API key saved under App Credentials (not the Auth Key used to log in).
-      </Text>
-      <TouchableOpacity
-        onPress={() => {
-          navigate(SCREEN_CONSTANTS.APP_CRED);
-        }}>
-        <Text style={[styles.link, theme.typography.body.medium, {color: theme.color.primary}]}>
-          Open App Credentials to add REST API key
-        </Text>
-      </TouchableOpacity>
 
       <TextInput style={[styles.input, {borderColor: theme.color.borderLight, color: theme.color.textPrimary}]} placeholder="UID *" placeholderTextColor={theme.color.textTertiary} value={uid} onChangeText={setUid} autoCapitalize="none" />
       <TextInput style={[styles.input, {borderColor: theme.color.borderLight, color: theme.color.textPrimary}]} placeholder="Name *" placeholderTextColor={theme.color.textTertiary} value={name} onChangeText={setName} />
+      <TextInput style={[styles.input, {borderColor: theme.color.borderLight, color: theme.color.textPrimary}]} placeholder="Password * (min 6 characters)" placeholderTextColor={theme.color.textTertiary} value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" />
+      <TextInput style={[styles.input, {borderColor: theme.color.borderLight, color: theme.color.textPrimary}]} placeholder="Confirm password *" placeholderTextColor={theme.color.textTertiary} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry autoCapitalize="none" />
       <TextInput style={[styles.input, {borderColor: theme.color.borderLight, color: theme.color.textPrimary}]} placeholder="Avatar URL" placeholderTextColor={theme.color.textTertiary} value={avatar} onChangeText={setAvatar} autoCapitalize="none" />
       <TextInput style={[styles.input, {borderColor: theme.color.borderLight, color: theme.color.textPrimary}]} placeholder="Profile Link URL" placeholderTextColor={theme.color.textTertiary} value={link} onChangeText={setLink} autoCapitalize="none" />
       <TextInput style={[styles.input, {borderColor: theme.color.borderLight, color: theme.color.textPrimary}]} placeholder="Role" placeholderTextColor={theme.color.textTertiary} value={role} onChangeText={setRole} />
@@ -116,10 +119,22 @@ const SignUp: React.FC = () => {
       <TouchableOpacity
         style={[
           styles.button,
-          {backgroundColor: theme.color.primaryButtonBackground, opacity: uid.trim() && name.trim() ? 1 : 0.6},
+          {
+            backgroundColor: theme.color.primaryButtonBackground,
+            opacity:
+              uid.trim() && name.trim() && password.length >= 6 && password === confirmPassword
+                ? 1
+                : 0.6,
+          },
         ]}
         onPress={createAndSignIn}
-        disabled={!uid.trim() || !name.trim() || isSubmitting}>
+        disabled={
+          !uid.trim() ||
+          !name.trim() ||
+          password.length < 6 ||
+          password !== confirmPassword ||
+          isSubmitting
+        }>
         {isSubmitting ? (
           <ActivityIndicator color={theme.color.staticWhite} />
         ) : (

@@ -5,7 +5,7 @@ A secure chat application built with React Native and Expo, featuring real-time 
 ## Features
 
 - 🔐 **Secure Messaging**: Real-time one-on-one and group messaging
-- 🔑 **CometChat Auth Flow**: UID sign-in and CometChat user creation UI aligned with CometChat `/users` fields
+- 🔑 **CometChat Auth Flow**: Bundled App ID / Auth Key / REST key, Sign In & Sign Up with device-local password (see `requirements/api/local-auth.md`)
 - 📞 **Voice & Video Calls**: High-quality voice and video calling with WebRTC
 - 🔔 **Push Notifications**: Firebase Cloud Messaging (FCM) for Android and Apple Push Notification Service (APNs) for iOS
 - 📱 **Cross-Platform**: Works on both iOS and Android
@@ -47,24 +47,18 @@ cd secure-chat-app
 npm install
 ```
 
-### 3. Configure CometChat Credentials
+### 3. CometChat credentials (bundled)
 
-Update the CometChat credentials in `src/utils/AppConstants.tsx`:
+Defaults live in **`src/utils/AppConstants.tsx`** (`appId`, `authKey`, `region`, push provider IDs). The app **does not** prompt users to enter these on first launch.
 
-```typescript
-export const AppConstants = {
-  fcmProviderId: 'YOUR_FCM_PROVIDER_ID',
-  apnsProviderId: 'YOUR_APNS_PROVIDER_ID',
-  authKey: 'YOUR_AUTH_KEY',
-  restApiKey: 'YOUR_FULL_ACCESS_REST_API_KEY', // needed for sign-up/create-user UI
-  appId: 'YOUR_APP_ID',
-  region: 'YOUR_REGION', // e.g., 'US', 'EU', 'IN'
-  // ... other constants
-};
-```
+For **Sign Up** (REST `POST /users`), set the full-access **REST API key** in one of two ways:
 
-The app credentials screen also lets you set this `restApiKey` at runtime.  
-`Sign In` needs only UID + Auth Key flow, while `Sign Up` (create user) needs a full-access REST API key.
+- Create a **`.env`** file in the project root with  
+  `EXPO_PUBLIC_COMETCHAT_REST_API_KEY=your_full_access_rest_key`  
+  (Expo inlines `EXPO_PUBLIC_*` at build time), or  
+- Assign `restApiKey` directly in `AppConstants.tsx` for local dev (avoid committing real secrets to public repos).
+
+**Sign In / Sign Up** also use an app **password** stored only on-device (`expo-secure-store`); see `requirements/api/local-auth.md`.
 
 ### 4. Configure Firebase (Push Notifications only)
 

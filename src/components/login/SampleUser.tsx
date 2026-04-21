@@ -399,18 +399,10 @@ const LoginScreen: React.FC = () => {
           </TouchableOpacity>
 
           <View style={styles.changeCredentialsWrapper}>
-            <Text
-              style={[
-                theme.typography.body.regular,
-                { color: theme.color.textSecondary },
-              ]}
-            >
-              Change{' '}
-            </Text>
             <TouchableOpacity
               style={styles.changeCredentialsContainer}
               onPress={() => {
-                navigationRef.navigate(SCREEN_CONSTANTS.APP_CRED);
+                navigationRef.navigate(SCREEN_CONSTANTS.SIGN_IN);
               }}
             >
               <Text
@@ -419,7 +411,7 @@ const LoginScreen: React.FC = () => {
                   { color: theme.color.primary },
                 ]}
               >
-                App Credentials
+                Back to Sign In
               </Text>
             </TouchableOpacity>
           </View>

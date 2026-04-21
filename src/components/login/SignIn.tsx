@@ -10,20 +10,24 @@ import {
 import {useTheme} from '@cometchat/chat-uikit-react-native';
 import {navigate, navigationRef} from '../../navigation/NavigationService';
 import {SCREEN_CONSTANTS} from '../../utils/AppConstants';
-import {mapCometChatAuthError, signInWithUid} from '../../services/cometchatAuth';
+import {
+  mapCometChatAuthError,
+  signInWithUidAndPassword,
+} from '../../services/cometchatAuth';
 
 const SignIn: React.FC = () => {
   const theme = useTheme();
   const [uid, setUid] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSignIn = async () => {
-    if (!uid.trim() || isSubmitting) return;
+    if (!uid.trim() || !password.trim() || isSubmitting) return;
     setError('');
     setIsSubmitting(true);
     try {
-      await signInWithUid(uid);
+      await signInWithUidAndPassword(uid, password);
       navigate(SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR);
       navigationRef.reset({
         index: 0,
@@ -36,13 +40,15 @@ const SignIn: React.FC = () => {
     }
   };
 
+  const canSubmit = uid.trim().length > 0 && password.trim().length > 0;
+
   return (
     <View style={[styles.container, {backgroundColor: theme.color.background2}]}>
       <Text style={[theme.typography.heading2.bold, {color: theme.color.textPrimary}]}>
         Sign In
       </Text>
       <Text style={[styles.subtitle, theme.typography.body.regular, {color: theme.color.textSecondary}]}>
-        Enter your CometChat UID.
+        Enter your CometChat UID and your app password.
       </Text>
 
       <TextInput
@@ -53,6 +59,27 @@ const SignIn: React.FC = () => {
           setError('');
         }}
         autoCapitalize="none"
+        autoCorrect={false}
+        style={[
+          styles.input,
+          {
+            borderColor: theme.color.borderLight,
+            color: theme.color.textPrimary,
+          },
+        ]}
+        placeholderTextColor={theme.color.textTertiary}
+      />
+
+      <TextInput
+        placeholder="Password"
+        value={password}
+        onChangeText={text => {
+          setPassword(text);
+          setError('');
+        }}
+        secureTextEntry
+        autoCapitalize="none"
+        autoCorrect={false}
         style={[
           styles.input,
           {
@@ -70,9 +97,12 @@ const SignIn: React.FC = () => {
       <TouchableOpacity
         style={[
           styles.button,
-          {backgroundColor: theme.color.primaryButtonBackground, opacity: uid.trim() ? 1 : 0.6},
+          {
+            backgroundColor: theme.color.primaryButtonBackground,
+            opacity: canSubmit ? 1 : 0.6,
+          },
         ]}
-        disabled={!uid.trim() || isSubmitting}
+        disabled={!canSubmit || isSubmitting}
         onPress={handleSignIn}>
         {isSubmitting ? (
           <ActivityIndicator color={theme.color.staticWhite} />
@@ -90,12 +120,7 @@ const SignIn: React.FC = () => {
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigate(SCREEN_CONSTANTS.SAMPLE_USER)}>
         <Text style={[styles.link, theme.typography.body.medium, {color: theme.color.primary}]}>
-          Use sample users
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigate(SCREEN_CONSTANTS.APP_CRED)}>
-        <Text style={[styles.link, theme.typography.body.medium, {color: theme.color.primary}]}>
-          Change app credentials
+          Use sample users (no password)
         </Text>
       </TouchableOpacity>
     </View>

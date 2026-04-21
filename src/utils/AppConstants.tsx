@@ -1,10 +1,20 @@
+/**
+ * CometChat keys are bundled here (no in-app credentials screen required).
+ * Optional: set `EXPO_PUBLIC_COMETCHAT_REST_API_KEY` in `.env` for the REST API key used at sign-up.
+ */
+const envRestApiKey =
+  typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_COMETCHAT_REST_API_KEY
+    ? String(process.env.EXPO_PUBLIC_COMETCHAT_REST_API_KEY).trim()
+    : '';
+
 export const AppConstants = {
   /** CometChat Dashboard → Notifications → FCM provider ID (used for Android + iOS FCM chat push). */
   fcmProviderId: '435251613306',
   /** Only if you use CometChat’s APNs Device provider for chat (not FCM). Leave empty for FCM-only iOS. */
   apnsProviderId: '',
   authKey: 'df50d6a569e80537fde3a11cac710409676e9f09',
-  restApiKey: '',
+  /** Full-access REST API key (sign-up / create user). Prefer `.env` or paste here for dev builds. */
+  restApiKey: envRestApiKey,
   appId: '1673397810d89b0a5',
   region: 'US',
   subscriptionType: 'ALL_USERS',

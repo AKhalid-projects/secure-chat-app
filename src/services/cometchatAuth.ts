@@ -1,6 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {CometChatUIKit} from '@cometchat/chat-uikit-react-native';
 import {AppConstants} from '../utils/AppConstants';
+import {
+  hasLocalPassword,
+  savePasswordForUid,
+  verifyPasswordForUid,
+} from './localAuth';
 
 type AppCredentials = {
   appId: string;
@@ -35,17 +40,48 @@ const getCredentials = async (): Promise<AppCredentials> => {
 };
 
 const missingRestApiKeyMessage =
-  'Sign up needs your full-access REST API key. In the CometChat Dashboard go to API & Auth Keys and copy the REST API key (full access). Open App Credentials in this app and paste it in “REST API Key”. It is not the same as the Auth Key used for chat login.';
+  'Sign up needs your full-access REST API key. Set `restApiKey` in `AppConstants.tsx` or `EXPO_PUBLIC_COMETCHAT_REST_API_KEY` in `.env`. Dashboard → API & Auth Keys (full access). It is not the client Auth Key.';
 
 export const signInWithUid = async (uid: string) => {
   return CometChatUIKit.login({uid: uid.trim()});
+};
+
+/**
+ * Sign in to CometChat with UID, enforcing a device-local password.
+ * First successful login on this device stores the password; later logins verify it.
+ */
+export const signInWithUidAndPassword = async (uid: string, password: string) => {
+  const u = uid.trim();
+  if (!u || !password.trim()) {
+    const err = new Error('Enter UID and password.') as Error & {code?: string};
+    err.code = 'local-auth/missing-credentials';
+    throw err;
+  }
+
+  if (await hasLocalPassword(u)) {
+    const ok = await verifyPasswordForUid(u, password);
+    if (!ok) {
+      const e = new Error('Wrong password.') as Error & {code?: string};
+      e.code = 'local-auth/wrong-password';
+      throw e;
+    }
+    return signInWithUid(u);
+  }
+
+  await signInWithUid(u);
+  await savePasswordForUid(u, password);
+};
+
+/** After sign-up (create user + CometChat login), persist the chosen password locally. */
+export const saveSignUpPassword = async (uid: string, password: string) => {
+  await savePasswordForUid(uid.trim(), password);
 };
 
 export const createCometChatUser = async (input: CreateCometChatUserInput) => {
   const credentials = await getCredentials();
   if (!credentials.appId || !credentials.region) {
     throw new Error(
-      'App ID or region is missing. Update App Credentials with your CometChat app details.',
+      'App ID or region is missing. Set `appId` and `region` in `AppConstants.tsx`.',
     );
   }
   if (!credentials.restApiKey) {
@@ -96,11 +132,15 @@ export const createCometChatUser = async (input: CreateCometChatUserInput) => {
 };
 
 export const mapCometChatAuthError = (error: any): string => {
+  const code = error?.code as string | undefined;
   const raw = String(error?.message || error || '');
+  if (code === 'local-auth/wrong-password') return 'Wrong password.';
+  if (code === 'local-auth/missing-credentials') return 'Enter UID and password.';
   if (raw.includes('ERR_UID_NOT_FOUND')) return 'This UID does not exist.';
   if (raw.includes('already exists')) return 'This UID already exists.';
   if (raw.includes('401')) return 'Invalid CometChat REST API key.';
   if (raw.includes('Sign up needs your full-access REST API key')) return raw;
   if (raw.includes('App ID or region is missing')) return raw;
+  if (raw.includes('Set `appId` and `region`')) return raw;
   return raw || 'Authentication failed. Please try again.';
 };

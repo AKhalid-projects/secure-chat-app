@@ -5,6 +5,8 @@ export type CallType = 'audio' | 'video';
 
 export type RootStackParamList = {
   Login: undefined;
+  SignIn: undefined;
+  SignUp: undefined;
   BottomTabNavigator: NavigatorScreenParams<BottomTabParamList>;
   OngoingCallScreen: { sessionId: string; callType?: CallType } | { call: any };
   AppCredentials: undefined;

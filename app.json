@@ -15,6 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.cometchat.internal.reactnative.ios",
+      "googleServicesFile": "./ios/SampleAppExpo/GoogleService-Info.plist",
       "userInterfaceStyle": "automatic",
       "infoPlist": {
         "NSCameraUsageDescription": "This is for Camera permission",
@@ -26,6 +27,7 @@
       }
     },
     "android": {
+      "googleServicesFile": "./android/app/google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

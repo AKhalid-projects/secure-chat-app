@@ -23,7 +23,7 @@ import {
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
 import { navigate, navigationRef } from '../../navigation/NavigationService';
-import { SCREEN_CONSTANTS } from '../../utils/AppConstants';
+import { AppConstants, SCREEN_CONSTANTS } from '../../utils/AppConstants';
 import { CometChat } from '@cometchat/chat-sdk-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,6 +37,7 @@ const AppCredentials: React.FC = () => {
   // These are the *editable* states bound to the TextInput fields
   const [appId, setAppId] = useState<string>('');
   const [authKey, setAuthKey] = useState<string>('');
+  const [restApiKey, setRestApiKey] = useState<string>('');
   const [selectedRegion, setSelectedRegion] = useState<string>('US');
 
   // Toast state for showing error messages
@@ -108,6 +109,7 @@ const AppCredentials: React.FC = () => {
             // Also set the fields so user sees them pre-populated
             setAppId(credentials.appId || '');
             setAuthKey(credentials.authKey || '');
+            setRestApiKey(credentials.restApiKey || '');
             setSelectedRegion(credentials.region || 'US');
           }
         } catch (error) {
@@ -155,6 +157,7 @@ const AppCredentials: React.FC = () => {
         region: newRegion,
         appId: newAppId,
         authKey: newAuthKey,
+        restApiKey: restApiKey.trim(),
       };
       console.log('Saving credentials:', credentials);
       await AsyncStorage.setItem('appCredentials', JSON.stringify(credentials));
@@ -171,11 +174,13 @@ const AppCredentials: React.FC = () => {
       console.error('Failed to save credentials', error);
     }
 
-    // Navigate to the next screen.
-    navigate('BottomTabNavigator');
+    const nextAuthRoute = SCREEN_CONSTANTS.SIGN_IN;
+
+    // Navigate to authentication flow after credentials are saved.
+    navigate(nextAuthRoute);
     navigationRef.reset({
       index: 0,
-      routes: [{ name: SCREEN_CONSTANTS.SAMPLE_USER }],
+      routes: [{ name: nextAuthRoute }],
     });
   };
 
@@ -387,6 +392,32 @@ const AppCredentials: React.FC = () => {
                 value={authKey}
                 onChangeText={setAuthKey}
                 placeholder="Enter the Auth Key"
+                placeholderTextColor={theme.color.textTertiary}
+              />
+            </View>
+
+            {/* REST API Key (for user signup via /users) */}
+            <View style={styles.inputContainer}>
+              <Text
+                style={[
+                  theme.typography.caption1.medium,
+                  { color: theme.color.textPrimary, paddingBottom: 5 },
+                ]}
+              >
+                REST API Key (optional for sign in, required for sign up)
+              </Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    borderColor: theme.color.borderLight,
+                    backgroundColor: theme.color.background2,
+                    color: theme.color.textPrimary,
+                  },
+                ]}
+                value={restApiKey}
+                onChangeText={setRestApiKey}
+                placeholder="Enter the full-access REST API key"
                 placeholderTextColor={theme.color.textTertiary}
               />
             </View>

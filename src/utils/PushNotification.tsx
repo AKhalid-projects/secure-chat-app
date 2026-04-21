@@ -28,6 +28,12 @@ export const registerPushToken = async (
   try {
     const platform = getPushPlatform(isFcm, isVoip);
     const providerId = getProviderId(isFcm);
+    if (!providerId?.trim()) {
+      console.warn(
+        `[Push] Missing CometChat provider id for ${isFcm ? 'FCM' : 'APNs'} registration. Set fcmProviderId and/or apnsProviderId in AppConstants.`,
+      );
+      return null;
+    }
     console.log('Push Platform:', platform);
 
     const response = await CometChatNotifications.registerPushToken(

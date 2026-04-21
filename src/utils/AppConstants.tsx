@@ -1,7 +1,10 @@
 export const AppConstants = {
+  /** CometChat Dashboard → Notifications → FCM provider ID (used for Android + iOS FCM chat push). */
   fcmProviderId: '435251613306',
+  /** Only if you use CometChat’s APNs Device provider for chat (not FCM). Leave empty for FCM-only iOS. */
   apnsProviderId: '',
   authKey: 'df50d6a569e80537fde3a11cac710409676e9f09',
+  restApiKey: '',
   appId: '1673397810d89b0a5',
   region: 'US',
   subscriptionType: 'ALL_USERS',
@@ -14,6 +17,8 @@ export const AppConstants = {
 
 export const SCREEN_CONSTANTS = {
   LOGIN: 'Login',
+  SIGN_IN: 'SignIn',
+  SIGN_UP: 'SignUp',
   APP_CRED: 'AppCredentials',
   SAMPLE_USER: 'SampleUser',
   ONGOING_CALL_SCREEN: 'OngoingCallScreen',

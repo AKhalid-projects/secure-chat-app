@@ -5,6 +5,7 @@ A secure chat application built with React Native and Expo, featuring real-time 
 ## Features
 
 - 🔐 **Secure Messaging**: Real-time one-on-one and group messaging
+- 🔑 **CometChat Auth Flow**: UID sign-in and CometChat user creation UI aligned with CometChat `/users` fields
 - 📞 **Voice & Video Calls**: High-quality voice and video calling with WebRTC
 - 🔔 **Push Notifications**: Firebase Cloud Messaging (FCM) for Android and Apple Push Notification Service (APNs) for iOS
 - 📱 **Cross-Platform**: Works on both iOS and Android
@@ -55,13 +56,22 @@ export const AppConstants = {
   fcmProviderId: 'YOUR_FCM_PROVIDER_ID',
   apnsProviderId: 'YOUR_APNS_PROVIDER_ID',
   authKey: 'YOUR_AUTH_KEY',
+  restApiKey: 'YOUR_FULL_ACCESS_REST_API_KEY', // needed for sign-up/create-user UI
   appId: 'YOUR_APP_ID',
   region: 'YOUR_REGION', // e.g., 'US', 'EU', 'IN'
   // ... other constants
 };
 ```
 
-### 4. Configure Firebase (for Push Notifications)
+The app credentials screen also lets you set this `restApiKey` at runtime.  
+`Sign In` needs only UID + Auth Key flow, while `Sign Up` (create user) needs a full-access REST API key.
+
+### 4. Configure Firebase (Push Notifications only)
+
+- Add native Firebase config files:
+  - iOS: `GoogleService-Info.plist`
+  - Android: `google-services.json`
+### 5. Configure Firebase (for Push Notifications)
 
 #### iOS Setup:
 1. Download your `GoogleService-Info.plist` from Firebase Console
@@ -71,7 +81,7 @@ export const AppConstants = {
 1. Download your `google-services.json` from Firebase Console
 2. Place it in `android/app/` directory
 
-### 5. Install iOS Dependencies
+### 6. Install iOS Dependencies
 
 ```bash
 cd ios
@@ -113,6 +123,8 @@ In a new terminal window:
 
 ```bash
 npx expo run:ios --device "DEVICE_ID_1"
+npx expo run:ios -d 7BB6E5CA-F483-49EB-AA21-6F201D01BC8A
+npx expo run:ios -d 9C4761E7-A4DB-452C-BB49-C2EA5BED8640 --no-bundler
 ```
 
 Wait for the first build to complete (typically 3-5 minutes).
@@ -240,16 +252,23 @@ secure-chat-app/
 
 ## Push Notification Setup
 
+Follow CometChat’s guides: [iOS FCM](https://www.cometchat.com/docs/notifications/ios-fcm-push-notifications), [iOS APNs](https://www.cometchat.com/docs/notifications/ios-apns-push-notifications).
+
 ### Android (FCM)
 - Configure Firebase project
 - Add `google-services.json` to `android/app/`
-- Set `fcmProviderId` in `AppConstants.tsx`
+- In CometChat Dashboard → Notifications, add **FCM (Android)** credentials and copy the **Provider ID** into `fcmProviderId` in `AppConstants.tsx`
 
-### iOS (APNs)
-- Configure Firebase project
-- Add `GoogleService-Info.plist` to the iOS app in Xcode (project `ios/SampleAppExpo.xcodeproj` / workspace `ios/SampleAppExpo.xcworkspace`)
-- Set `apnsProviderId` in `AppConstants.tsx`
-- Enable Push Notifications and VoIP capabilities in Xcode
+### iOS (FCM — same provider family as Android)
+This project registers the **FCM registration token** on iOS (not the raw APNs token) for **chat** notifications, using the **same `fcmProviderId`** as Android. Native code sets `Messaging.messaging().apnsToken` in `AppDelegate` so Firebase can issue the FCM token.
+
+- Add `GoogleService-Info.plist` to the iOS target (see `app.json` `ios.googleServicesFile`).
+- In **Firebase Console** → Project settings → **Cloud Messaging**, upload your **APNs authentication key** (or certificates) for the iOS app so FCM can deliver to APNs.
+- In **CometChat Dashboard**, add an **FCM iOS** provider (Firebase service account JSON) and set **`fcmProviderId`** in `AppConstants.tsx` to that provider’s ID (must match the app you configured).
+- Xcode: enable **Push Notifications** and **Background Modes** → **Remote notifications** (already reflected via Expo `UIBackgroundModes` where applicable).
+
+### iOS (optional: APNs Device provider only)
+If you use CometChat’s **APNs Device** provider instead of FCM for chat, set **`apnsProviderId`** in `AppConstants.tsx`. Leave it empty to use **FCM-only** registration for chat (recommended path in this repo).
 
 ## Testing Push Notifications
 

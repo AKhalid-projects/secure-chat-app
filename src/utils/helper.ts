@@ -20,7 +20,7 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/types';
-import {SCREEN_CONSTANTS} from './AppConstants';
+import {AppConstants, SCREEN_CONSTANTS} from './AppConstants';
 import dayjs from 'dayjs';
 
 interface Translations {
@@ -39,8 +39,8 @@ interface NotifeeData {
 }
 
 /**
- * Display a local notification (Android) using Notifee.
- * This is triggered when the app is in the foreground.
+ * Display a local notification using Notifee when a chat FCM message arrives in the foreground.
+ * Android uses a channel; iOS uses a minimal Notifee payload.
  */
 export async function displayLocalNotification(
   remoteMessage: any,
@@ -61,31 +61,23 @@ export async function displayLocalNotification(
     }
 
     const {title, body, senderAvatar} = remoteMessage.data || {};
-    const skey = remoteMessage.sentTime.toString();
-    const channelId = await notifee.createChannel({
-      id: 'chat-messages',
-      name: 'Chat Messages',
-      vibration: true,
-      importance: AndroidImportance.HIGH,
-    });
+    const skey = remoteMessage.sentTime?.toString?.() ?? String(Date.now());
 
     // Extract parent ID for agentic messages
     let parentId: string | undefined;
     let messageId: string | undefined;
-    
+
     try {
       if (remoteMessage.data?.message) {
         const parsedMessage = JSON.parse(remoteMessage.data.message);
         parentId = parsedMessage.parentId;
         messageId = parsedMessage.id;
       }
-      // Fallback to tag if message parsing fails
       if (!messageId && remoteMessage.data?.tag) {
         messageId = remoteMessage.data.tag;
       }
     } catch (error) {
       console.log('Error parsing message data:', error);
-      // Use tag as fallback
       if (remoteMessage.data?.tag) {
         messageId = remoteMessage.data.tag;
       }
@@ -95,9 +87,33 @@ export async function displayLocalNotification(
       receiverType: remoteMessage.data?.receiverType,
       sender: remoteMessage.data?.sender,
       conversationId: remoteMessage.data?.conversationId,
-      ...(messageId && { messageId }),
-      ...(parentId && { parentId }),
+      ...(messageId && {messageId}),
+      ...(parentId && {parentId}),
     };
+
+    if (Platform.OS === 'ios') {
+      await notifee.displayNotification({
+        title: title || 'New Message',
+        body: body || 'You received a new message.',
+        ios: {
+          sound: 'default',
+          foregroundPresentationOptions: {
+            alert: true,
+            badge: true,
+            sound: true,
+          },
+        },
+        data: notificationData as Record<string, string>,
+      });
+      return;
+    }
+
+    const channelId = await notifee.createChannel({
+      id: 'chat-messages',
+      name: 'Chat Messages',
+      vibration: true,
+      importance: AndroidImportance.HIGH,
+    });
 
     await notifee.displayNotification({
       title: title || 'New Message',
@@ -257,7 +273,8 @@ export async function onRemoteNotificationIOS(notification: any) {
 }
 
 /**
- * Retrieve and register the FCM token with CometChat (Android only).
+ * Retrieve and register the FCM token with CometChat (Android + iOS).
+ * iOS uses the same FCM provider ID as Android for CometChat (see ios-fcm-push-notifications).
  */
 export async function getAndRegisterFCMToken(
   user: boolean,
@@ -267,16 +284,25 @@ export async function getAndRegisterFCMToken(
   setCurrentToken: (token: string) => void,
 ) {
   try {
+    if (Platform.OS === 'ios') {
+      const authStatus = await messaging().requestPermission();
+      const enabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+      if (!enabled) {
+        console.warn('[Push] iOS notification permission not granted');
+        return;
+      }
+    }
+
     await messaging().registerDeviceForRemoteMessages();
     const token = await messaging().getToken();
     console.log('FCM Token:', token);
 
-    if (user && !isTokenRegistered) {
-      if (token !== currentToken) {
-        await registerPushToken(token, true, false);
-        setIsTokenRegistered(true);
-        setCurrentToken(token);
-      }
+    if (user && !isTokenRegistered && token && token !== currentToken) {
+      await registerPushToken(token, true, false);
+      setIsTokenRegistered(true);
+      setCurrentToken(token);
     }
   } catch (error) {
     console.error('Failed to get FCM Token:', error);
@@ -284,7 +310,9 @@ export async function getAndRegisterFCMToken(
 }
 
 /**
- * Register iOS's APNs (non-VoIP) token with CometChat.
+ * Register iOS's APNs (non-VoIP) device token with CometChat — only when using the
+ * APNs Device provider (`apnsProviderId`). Chat push on iOS otherwise uses FCM + `fcmProviderId`.
+ * @see https://www.cometchat.com/docs/notifications/ios-apns-push-notifications
  */
 export async function handleIosApnsToken(
   user: boolean,
@@ -294,6 +322,9 @@ export async function handleIosApnsToken(
   setCurrentToken: (token: string) => void,
   setIsTokenRegistered: (val: boolean) => void,
 ) {
+  if (!AppConstants.apnsProviderId?.trim()) {
+    return;
+  }
   if (user && deviceToken !== currentToken && !isTokenRegistered) {
     try {
       await registerPushToken(deviceToken, false, false);

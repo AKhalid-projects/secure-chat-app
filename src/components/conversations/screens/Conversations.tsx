@@ -12,7 +12,6 @@ import {AuthContext} from '../../../navigation/AuthContext';
 import {
   useFocusEffect,
   useNavigation,
-  CommonActions,
 } from '@react-navigation/native';
 import {TooltipMenu} from '../../../utils/TooltipMenu';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -21,7 +20,7 @@ import AccountCircle from '../../../assets/icons/AccountCircle';
 import AddComment from '../../../assets/icons/AddComment';
 import InfoIcon from '../../../assets/icons/InfoIcon';
 import Logout from '../../../assets/icons/Logout';
-import {navigate, navigationRef} from '../../../navigation/NavigationService';
+import {navigate} from '../../../navigation/NavigationService';
 import {AppConstants, SCREEN_CONSTANTS} from '../../../utils/AppConstants';
 import Builder from '../../../assets/icons/Builder';
 import { useConfig, useConfigStore } from '../../../config/store'; // adjust import if needed
@@ -35,7 +34,7 @@ type ChatNavigationProp = StackNavigationProp<
 
 const Conversations: React.FC<{}> = ({}) => {
   const theme = useTheme();
-  const {setIsLoggedIn: setLogout} = useContext(AuthContext);
+  const {logout} = useContext(AuthContext);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const tooltipPositon = React.useRef({pageX: 0, pageY: 0});
   const [tooltipVisible, setTooltipVisible] = useState(false);
@@ -109,25 +108,13 @@ const Conversations: React.FC<{}> = ({}) => {
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-
-    // Step 1: Logout from CometChat
     try {
-      await CometChat.logout();
+      await logout();
     } catch (error) {
-      console.error('CometChat logout failed:', error);
+      console.error('Logout failed:', error);
+    } finally {
       setIsLoggingOut(false);
-      return; // Exit if CometChat logout fails
     }
-
-    // If all operations succeed, navigate to the LoginScreen
-    setIsLoggingOut(false);
-    setLogout(false);
-    navigationRef.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'SampleUser' }],
-      }),
-    );
   };
 
   const NewConversation = () => {

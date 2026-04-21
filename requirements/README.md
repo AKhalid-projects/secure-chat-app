@@ -18,6 +18,7 @@ The product name **Secure Chat Application** refers to that client. Paths such a
 | [`requirements-index.md`](requirements-index.md) | Tables of all FRs and NFRs with links to each detail file. |
 | [`functional/`](functional/) | One file per functional requirement: `FR-001.md` … `FR-017.md`. |
 | [`non-functional/`](non-functional/) | One file per non-functional requirement: `NFR-001.md` … `NFR-012.md`. |
+| [`api/`](api/) | API contracts used by the app integration layer (for example CometChat REST create-user used by Sign Up UI). |
 
 ## Requirement Types (quick reference)
 
@@ -43,6 +44,7 @@ Each detail file lists **evidence** (which files in the repo), **acceptance crit
 
 Formal, report-ready prose for an undergraduate final-year project is maintained under [`research/`](research/).
 
+- **Merged thesis draft (Chapters 1–11, single file):** [`research/v2/1-11.md`](research/v2/1-11.md). Per-chapter extracts for editing: [`research/v2/01.md`](research/v2/01.md) … [`research/v2/11.md`](research/v2/11.md). The v2 draft uses **ten consolidated functional requirements (CFR)** and **ten consolidated non-functional requirements (CNFR)** in the main text, with **mapping** to the engineering FR-001–FR-017 / NFR-001–NFR-012 set in **Appendix 11.1** of that draft.
 - Chapter drafts: [`research/academic-requirements-gathering.md`](research/academic-requirements-gathering.md), [`research/academic-requirements-analysis.md`](research/academic-requirements-analysis.md), and [`research/academic-requirements-section-combined.md`](research/academic-requirements-section-combined.md)
 - Per-requirement **research narratives**: [`research/functional/`](research/functional/), [`research/non-functional/`](research/non-functional/)
 - **Tabular overviews** (same research layer): [`research/functional/requirements-table.md`](research/functional/requirements-table.md), [`research/non-functional/requirements-table.md`](research/non-functional/requirements-table.md), combined [`research/requirements-tables.md`](research/requirements-tables.md)

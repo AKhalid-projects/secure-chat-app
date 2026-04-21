@@ -24,7 +24,7 @@ import messaging from '@react-native-firebase/messaging';
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import RootStackNavigator from "./src/navigation/RootStackNavigator";
-import { AppConstants } from "./src/utils/AppConstants";
+import { AppConstants, SCREEN_CONSTANTS } from "./src/utils/AppConstants";
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import VoipPushNotification from 'react-native-voip-push-notification';
 import {
@@ -48,9 +48,13 @@ import { consumePendingAnsweredCall, isPendingStale } from './src/utils/PendingC
 import { useConfig } from './src/config/store';
 import { DeepPartial } from '@cometchat/chat-uikit-react-native/src/shared/helper/types';
 import { createTypography } from './src/utils/themeTypography';
+import { AuthContext } from './src/navigation/AuthContext';
 
 // Listener ID for registering and removing CometChat listeners.
 const listenerId = "app";
+
+const isIosOrAndroid =
+  Platform.OS === "ios" || Platform.OS === "android";
 
 const App = (): React.ReactElement => {
   const { activeChat } = useActiveChat();
@@ -60,6 +64,7 @@ const App = (): React.ReactElement => {
   );
   const [isInitializing, setIsInitializing] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [cometChatReady, setCometChatReady] = useState(false);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [currentToken, setCurrentToken] = useState("");
   const [isTokenRegistered, setIsTokenRegistered] = useState(false);
@@ -116,11 +121,7 @@ const App = (): React.ReactElement => {
             .SUBSCRIPTION_TYPE_ALL_USERS as UIKitSettings["subscriptionType"],
         });
 
-        // If a user is already logged in, update the state.
-        const loggedInUser = CometChatUIKit.loggedInUser;
-        if (loggedInUser) {
-          setIsLoggedIn(true);
-        }
+        setCometChatReady(true);
       } catch (error) {
         console.log("Error during initialization", error);
       } finally {
@@ -196,6 +197,29 @@ const App = (): React.ReactElement => {
    * This effect listens for incoming calls and updates the state accordingly.
    */
   useEffect(() => {
+    if (!cometChatReady) {
+      return;
+    }
+    let isMounted = true;
+    (async () => {
+      try {
+        const chatUser = await CometChat.getLoggedinUser();
+        if (isMounted) {
+          setIsLoggedIn(!!chatUser);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setIsLoggedIn(false);
+        }
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [cometChatReady]);
+
+  useEffect(() => {
     if (Platform.OS === 'ios') {
       RNCallKeep.addEventListener('didDisplayIncomingCall', () => {
         setCallReceived(false);
@@ -234,6 +258,21 @@ const App = (): React.ReactElement => {
     );
     return () => subscription.remove();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await CometChat.logout();
+    } catch (error) {
+      console.log('CometChat logout failed:', error);
+    }
+
+    setIsLoggedIn(false);
+    setUserLoggedIn(false);
+    navigationRef.reset({
+      index: 0,
+      routes: [{ name: SCREEN_CONSTANTS.SIGN_IN }],
+    });
+  };
 
   /**
    * Attach CometChat login listener to handle login and logout events.
@@ -350,21 +389,20 @@ const App = (): React.ReactElement => {
   }, [userLoggedIn]);
 
   /**
-   * Android only: Listen for incoming FCM messages while the app is in the foreground.
-   * Displays a local notification when a message is received.
+   * Android + iOS: FCM foreground messages — show a local notification (Notifee).
    */
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      // Subscribe to FCM messages.
-      const unsubscribe = messaging().onMessage(async remoteMessage => {
-        try {
-          await displayLocalNotification(remoteMessage, activeChat);
-        } catch (error) {
-          console.log('Error displaying local notification:', error);
-        }
-      });
-      return () => unsubscribe();
+    if (!isIosOrAndroid) {
+      return;
     }
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      try {
+        await displayLocalNotification(remoteMessage, activeChat);
+      } catch (error) {
+        console.log('Error displaying local notification:', error);
+      }
+    });
+    return () => unsubscribe();
   }, [activeChat]);
 
   /**
@@ -422,43 +460,39 @@ const App = (): React.ReactElement => {
   }, []);
 
   /**
-   * Android only: Listen for FCM token refresh events.
-   * When a new token is received and the user is logged in, register it with CometChat.
+   * Android + iOS: FCM token rotation — re-register with CometChat when the token changes.
    */
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      const unsubscribeOnTokenRefresh = messaging().onTokenRefresh(
-        async newToken => {
-          try {
-            console.log('FCM Token refreshed:', newToken);
-            if (
-              userLoggedIn &&
-              newToken !== currentToken &&
-              !isTokenRegistered
-            ) {
-              await registerPushToken(newToken, true, false);
-              console.log('New token registered with CometChat (FCM).');
-              setCurrentToken(newToken);
-              setIsTokenRegistered(true);
-            }
-          } catch (error) {
-            console.error(
-              'Failed to register new token with CometChat:',
-              error,
-            );
-          }
-        },
-      );
-      return () => unsubscribeOnTokenRefresh();
+    if (!isIosOrAndroid) {
+      return;
     }
-  }, [userLoggedIn, currentToken, isTokenRegistered]);
+    const unsubscribeOnTokenRefresh = messaging().onTokenRefresh(
+      async newToken => {
+        try {
+          console.log('FCM Token refreshed:', newToken);
+          if (userLoggedIn && newToken) {
+            await registerPushToken(newToken, true, false);
+            console.log('New FCM token registered with CometChat.');
+            setCurrentToken(newToken);
+            setIsTokenRegistered(true);
+          }
+        } catch (error) {
+          console.error(
+            'Failed to register new token with CometChat:',
+            error,
+          );
+        }
+      },
+    );
+    return () => unsubscribeOnTokenRefresh();
+  }, [userLoggedIn]);
 
   /**
-   * Android only: After user logs in, trigger initial FCM token retrieval.
-   * Uses a small delay to ensure that the user login process has completed.
+   * After login, fetch FCM token and register with CometChat (Android + iOS).
+   * iOS uses the same `fcmProviderId` as Android per CometChat iOS FCM guide.
    */
   useEffect(() => {
-    if (Platform.OS === 'android' && userLoggedIn && !isTokenRegistered) {
+    if (isIosOrAndroid && userLoggedIn && !isTokenRegistered) {
       const timer = setTimeout(() => {
         getAndRegisterFCMToken(
           userLoggedIn,
@@ -610,13 +644,20 @@ const App = (): React.ReactElement => {
                 }}
               />
             ) : null}
-          <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
-            {/* Render the main navigation stack, passing the login status as a prop */}
-            <RootStackNavigator
-              isLoggedIn={isLoggedIn}
-              hasValidAppCredentials={hasValidAppCredentials}
-            />
-          </SafeAreaView>
+          <AuthContext.Provider
+            value={{
+              isLoggedIn,
+              setIsLoggedIn,
+              logout: handleLogout,
+            }}>
+            <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+              {/* Render the main navigation stack, passing the login status as a prop */}
+              <RootStackNavigator
+                isLoggedIn={isLoggedIn}
+                hasValidAppCredentials={hasValidAppCredentials}
+              />
+            </SafeAreaView>
+          </AuthContext.Provider>
         </CometChatI18nProvider>
       </CometChatThemeProvider>
     </SafeAreaProvider>

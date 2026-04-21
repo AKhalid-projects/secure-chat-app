@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "435251613306",
+    "project_id": "chat-1b055",
+    "storage_bucket": "chat-1b055.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:435251613306:android:d5232b9ed4d08ff2e7f5c3",
+        "android_client_info": {
+          "package_name": "com.cometchat.sampleapp.reactnative.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBluZ72avytCfL8kecrNljaWUEbS2yZUkw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:435251613306:android:5295fa0c2b810481e7f5c3",
+        "android_client_info": {
+          "package_name": "securechat.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBluZ72avytCfL8kecrNljaWUEbS2yZUkw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -9,6 +9,8 @@ import {RootStackParamList} from './types';
 import {navigationRef, processPendingNavigation} from './NavigationService';
 import SampleUser from '../components/login/SampleUser';
 import AppCredentials from '../components/login/AppCredentials';
+import SignIn from '../components/login/SignIn';
+import SignUp from '../components/login/SignUp';
 import {Platform, StatusBar, useColorScheme} from 'react-native';
 import {navigateToConversation} from '../utils/helper';
 import Conversations from '../components/conversations/screens/Conversations';
@@ -67,8 +69,8 @@ const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials: _hasValidAppCre
             isLoggedIn
               ? SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR
               : _hasValidAppCredentials
-            ? SCREEN_CONSTANTS.SAMPLE_USER
-            : SCREEN_CONSTANTS.APP_CRED
+                ? SCREEN_CONSTANTS.SIGN_IN
+                : SCREEN_CONSTANTS.APP_CRED
           }
           screenOptions={{
             gestureEnabled: true,
@@ -84,6 +86,14 @@ const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials: _hasValidAppCre
           <Stack.Screen
             name={SCREEN_CONSTANTS.SAMPLE_USER}
             component={SampleUser}
+          />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.SIGN_IN}
+            component={SignIn}
+          />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.SIGN_UP}
+            component={SignUp}
           />
           {/* Tab Screens */}
           <Stack.Screen

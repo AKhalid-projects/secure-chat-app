@@ -260,6 +260,7 @@ This project registers the **FCM registration token** on iOS (not the raw APNs t
 - In **Firebase Console** → Project settings → **Cloud Messaging**, upload your **APNs authentication key** (or certificates) for the iOS app so FCM can deliver to APNs.
 - In **CometChat Dashboard**, add an **FCM iOS** provider (Firebase service account JSON) and set **`fcmProviderId`** in `AppConstants.tsx` to that provider’s ID (must match the app you configured).
 - Xcode: enable **Push Notifications** and **Background Modes** → **Remote notifications** (already reflected via Expo `UIBackgroundModes` where applicable).
+- The iOS target must ship **`aps-environment`** in `SampleAppExpo.entitlements` (see `app.json` → `ios.entitlements`). An empty entitlements file causes `no valid "aps-environment"` when fetching the FCM token. Use **`development`** for local/dev builds and **`production`** for App Store release (match your provisioning profile).
 
 ### iOS (optional: APNs Device provider only)
 If you use CometChat’s **APNs Device** provider instead of FCM for chat, set **`apnsProviderId`** in `AppConstants.tsx`. Leave it empty to use **FCM-only** registration for chat (recommended path in this repo).

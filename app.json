@@ -17,6 +17,9 @@
       "bundleIdentifier": "com.cometchat.internal.reactnative.ios",
       "googleServicesFile": "./ios/SampleAppExpo/GoogleService-Info.plist",
       "userInterfaceStyle": "automatic",
+      "entitlements": {
+        "aps-environment": "development"
+      },
       "infoPlist": {
         "NSCameraUsageDescription": "This is for Camera permission",
         "NSMicrophoneUsageDescription": "This is for Microphone permission",

@@ -2,6 +2,14 @@
 
 This app supports **FCM-based chat push on iOS** using the same **`fcmProviderId`** as Android, per [iOS FCM push notifications](https://www.cometchat.com/docs/notifications/ios-fcm-push-notifications).
 
+## Apple entitlements (`aps-environment`)
+
+The iOS target **must** include the **`aps-environment`** entitlement (Push Notifications capability). If `ios/SampleAppExpo/SampleAppExpo.entitlements` is empty or missing this key, `messaging().getToken()` fails with:
+
+`[messaging/unknown] no valid "aps-environment" entitlement string found for application`
+
+Development builds use `development`; App Store / TestFlight release builds should use `production` (match your provisioning profile). `app.json` mirrors this under `expo.ios.entitlements` for `expo prebuild`.
+
 ## Client behavior
 
 1. **Native:** `AppDelegate` forwards the APNs device token to `FirebaseMessaging` (`Messaging.messaging().apnsToken`) so FCM can produce an iOS registration token.
